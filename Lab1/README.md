@@ -1,2 +1,1 @@
-# lab1
-
+./sudoku input.txt 2   (num of thread)
