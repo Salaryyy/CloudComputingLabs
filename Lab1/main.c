@@ -31,7 +31,7 @@ void *child(void *argv){
     int num = *((int*) argv);
     int temp = num;
     int board[81];
-    while(num < lines){
+    while(num <= lines){
         //printf("thread %d sovle %s", temp, data[num]);
         for(int i = 0; i < 81; ++i)
             board[i] = data[num][i] - '0';
