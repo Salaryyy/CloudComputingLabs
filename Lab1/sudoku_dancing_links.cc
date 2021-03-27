@@ -2,6 +2,7 @@
 #include <memory.h>
 #include <map>
 #include <vector>
+#include "sudoku.h"
 
 using namespace std;
 
@@ -18,8 +19,6 @@ struct Node
     int size;
 };
 
-enum { ROW=9, COL=9, N = 81, NEIGHBOR = 20 };
-const int NUM = 9;
 const int kMaxNodes = 1 + 81*4 + 9*9*9*4;
 const int kMaxColumns = 400;
 const int kRow = 100, kCol = 200, kBox = 300;

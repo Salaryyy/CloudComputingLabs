@@ -1,2 +1,8 @@
-Sudoku: sudoku_dancing_links.cc main.c
-	g++ sudoku_dancing_links.cc main.c -lpthread -o sudoku
+Sudoku: sudoku_dancing_links.o main.o
+	g++ $^ -lpthread -o sudoku
+sudoku_dancing_links.o:sudoku_dancing_links.cc
+	g++ -c sudoku_dancing_links.cc -o sudoku_dancing_links.o
+main.o:main.c
+	g++ -c main.c -lpthread -o main.o
+clean:
+	rm *.o sudoku
