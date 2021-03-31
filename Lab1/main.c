@@ -11,22 +11,36 @@
 #include <stdlib.h>
 #include"sudoku.h"
 
-const int n_pthread = 4;   // 在这里修改线程数量
+int n_pthread;   // 在这里修改线程数量
 
 pthread_mutex_t visit_buf = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock_print = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t empty = PTHREAD_COND_INITIALIZER;
 pthread_cond_t full = PTHREAD_COND_INITIALIZER;
-pthread_cond_t print_order[n_pthread];
+pthread_cond_t *print_order;
 
 int total = 0;
 int cur_print = 0;
 
-char *buf[n_pthread];
+char **buf;
 int fill_ptr = 0;
 int use_ptr = 0;
 int n_data = 0;
 bool end = false;
+
+FILE *result;
+
+void init(int n){
+    print_order=(pthread_cond_t *)malloc(n*sizeof(pthread_cond_t));
+    buf=(char **)malloc(n*sizeof(char *));
+    n_pthread=n;
+    result=fopen("result.dat","w+");
+}
+
+void program_end(){
+    free(print_order);
+    free(buf);
+}
 
 int64_t now()
 {
@@ -70,7 +84,7 @@ void *solver(void *arg)
         //解决问题
         solve_sudoku_dancing_links(board);
 
-
+    
         //这里还有个大问题，输出顺序
         pthread_mutex_lock(&lock_print);
         while(myturn != cur_print){
@@ -79,10 +93,11 @@ void *solver(void *arg)
         }
         
         //打印到屏幕 注释掉可以省不少时间
-        printf("现在打印第%d行", record_print);
+        //printf("现在打印第%d行", record_print);
         for(int i = 0; i < 81; ++i)
-            printf("%d", board[i]);
-        printf("\n");
+            fprintf(result, "%d", board[i]); 
+            //printf("%d", board[i]);
+        fputs("\n",result);
         //printf("唤醒%d\n", (myturn + 1) % n_pthread);
 
         cur_print = (cur_print + 1) % n_pthread;
@@ -94,6 +109,13 @@ void *solver(void *arg)
  
 int main (int argc, char *argv[])
 {
+    if(argc!=3){
+        printf("输入格式有误，格式如下\nsudoku <inputfile> <thread_num>\n");
+        return 0;
+    }
+    int thread_num_init=atoi(argv[2]);
+    char *filename = argv[1];
+    init(thread_num_init);
     pthread_t tid[n_pthread];
     //开辟缓冲区
     for(int i = 0; i < n_pthread; ++i)
@@ -104,7 +126,7 @@ int main (int argc, char *argv[])
         pthread_create(&tid[i], NULL, solver, NULL);
     }
 
-    FILE *fp = fopen("input.txt", "r");
+    FILE *fp = fopen(filename, "r");
     
     int64_t start = now();
 
@@ -141,5 +163,7 @@ int main (int argc, char *argv[])
     //释放缓冲区
     for(int i = 0; i < n_pthread; ++i)
         free(buf[i]);
+    
+    program_end();
     return 0;
 } 
