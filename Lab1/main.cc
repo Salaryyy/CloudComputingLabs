@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <sys/time.h>
 #include <malloc.h>
@@ -26,7 +27,7 @@ pthread_t file_thread;
 int total = 0;
 int cur_print = 0;
 
-int finish_num=0;
+int finish_num = 0;
 char **buf;
 int fill_ptr = 0;
 int use_ptr = 0;
@@ -74,7 +75,7 @@ void *solver(void *arg)
     {
         pthread_mutex_lock(&visit_buf);
         if (n_data == 0 && end)
-        {                                     //文件读到尾了
+        { //文件读到尾了
             finish_num++;
             pthread_mutex_unlock(&visit_buf); //开锁跑路
             //printf("paolu\n");
@@ -82,7 +83,9 @@ void *solver(void *arg)
             //pthread_exit(NULL);
         }
         while (n_data == 0 && !end) //这里类似于线程池的解法
+        {
             pthread_cond_wait(&full, &visit_buf);
+        }
         ++total;
         int record_print = total; //调试用
         int myturn = (total - 1) % n_pthread;
@@ -120,10 +123,12 @@ void *solver(void *arg)
     }
 }
 
-void *file_handler(void *argv){
+void *file_handler(void *argv)
+{
     char tmp[20];
-    while(1){
-        scanf("%s",tmp);
+    while (1)
+    {
+        scanf("%s", tmp);
         pthread_mutex_lock(&lock_file);
         file_list.push_back(tmp);
         pthread_mutex_unlock(&lock_file);
@@ -145,20 +150,31 @@ int main(int argc, char *argv[])
         print_order[i] = PTHREAD_COND_INITIALIZER;
         pthread_create(&tid[i], NULL, solver, NULL);
     }
-    pthread_create(&file_thread,NULL,file_handler,NULL);
+    pthread_create(&file_thread, NULL, file_handler, NULL);
     while (1)
-     {
-        while(file_list.size()==0);
+    {
+        while (file_list.size() == 0)
+            ;
         pthread_mutex_lock(&lock_file);
         {
-            strcpy(filename,file_list.front());
+            strcpy(filename, file_list.front());
             file_list.pop_front();
         }
         pthread_mutex_unlock(&lock_file);
-        finish_num=0;
+        if (strcmp(filename, "quit") == 0)
+        {
+            printf("退出\n");
+            exit(0);
+        }
+        if (access(filename, F_OK) == -1)
+        {
+            printf("文件不存在\n");
+            continue;
+        }
+        finish_num = 0;
         //scanf("%s", filename);
         FILE *fp = fopen(filename, "r");
-        total=0;
+        total = 0;
         int64_t start = now();
         pthread_cond_broadcast(&tj);
         while (1)
@@ -186,8 +202,9 @@ int main(int argc, char *argv[])
             pthread_cond_signal(&full);
             pthread_mutex_unlock(&visit_buf);
         }
-        while(finish_num!=n_pthread);
-            
+        while (finish_num != n_pthread)
+            ;
+
         int64_t end = now();
         double sec = (end - start) / 1000000.0;
         printf("%f sec %f ms each %d, \n", sec, 1000 * sec / total, total);
