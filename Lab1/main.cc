@@ -9,17 +9,20 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <list>
 #include "sudoku.h"
 #include "tools.h"
 int n_pthread; // 在这里修改线程数量
 
 pthread_mutex_t visit_buf = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t lock_print = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t lock_file = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t empty = PTHREAD_COND_INITIALIZER;
 pthread_cond_t full = PTHREAD_COND_INITIALIZER;
 pthread_cond_t tj = PTHREAD_COND_INITIALIZER;
 pthread_cond_t *print_order;
 pthread_t *tid;
+pthread_t file_thread;
 int total = 0;
 int cur_print = 0;
 
@@ -29,6 +32,8 @@ int fill_ptr = 0;
 int use_ptr = 0;
 int n_data = 0;
 bool end = false;
+
+std::list<char *> file_list;
 
 void init()
 {
@@ -115,9 +120,19 @@ void *solver(void *arg)
     }
 }
 
+void *file_handler(void *argv){
+    char tmp[20];
+    while(1){
+        scanf("%s",tmp);
+        pthread_mutex_lock(&lock_file);
+        file_list.push_back(tmp);
+        pthread_mutex_unlock(&lock_file);
+    }
+}
+
 int main(int argc, char *argv[])
 {
-    char filename[10];
+    char filename[20];
 
     init();
 
@@ -130,10 +145,18 @@ int main(int argc, char *argv[])
         print_order[i] = PTHREAD_COND_INITIALIZER;
         pthread_create(&tid[i], NULL, solver, NULL);
     }
-     while (1)
+    pthread_create(&file_thread,NULL,file_handler,NULL);
+    while (1)
      {
+        while(file_list.size()==0);
+        pthread_mutex_lock(&lock_file);
+        {
+            strcpy(filename,file_list.front());
+            file_list.pop_front();
+        }
+        pthread_mutex_unlock(&lock_file);
         finish_num=0;
-        scanf("%s", filename);
+        //scanf("%s", filename);
         FILE *fp = fopen(filename, "r");
         total=0;
         int64_t start = now();
