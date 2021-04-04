@@ -1,6 +1,7 @@
 #include "tools.h"
 #include "stdio.h"
 #include "string.h"
+#include "stdlib.h"
 
 int getCpuInfo()  
 {  
@@ -15,8 +16,10 @@ int getCpuInfo()
         //printf("%s", szTest);
         if(strstr(szTest,"siblings")!=NULL){
             fclose(fp);
+            char tmp[10];
+            strcpy(tmp,szTest+(strchr(szTest,':') - szTest+2));
             //std::cout << szTest[strlen(szTest) - 1] << std::endl;
-            return szTest[strchr(szTest,':') - szTest+2] - '0';
+            return atoi(tmp);
         } 
     }    
     return 0;

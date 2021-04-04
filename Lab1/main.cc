@@ -48,6 +48,9 @@ void init()
 void program_end()
 {
     free(print_order);
+    //释放缓冲区
+    for (int i = 0; i < n_pthread; ++i)
+        free(buf[i]);
     free(buf);
 }
 
@@ -215,10 +218,6 @@ int main(int argc, char *argv[])
     {
         pthread_join(tid[i], NULL);
     }
-
-    //释放缓冲区
-    for (int i = 0; i < n_pthread; ++i)
-        free(buf[i]);
 
     program_end();
     return 0;
