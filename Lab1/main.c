@@ -28,6 +28,8 @@ int use_ptr = 0;
 int n_data = 0;
 bool end = false;
 
+long long int sudoku_num=0;
+long long int sudoku_readnum=0;
 FILE *result;
 
 void init(int n){
@@ -109,11 +111,12 @@ void *solver(void *arg)
  
 int main (int argc, char *argv[])
 {
-    if(argc!=3){
-        printf("输入格式有误，格式如下\nsudoku <inputfile> <thread_num>\n");
+    if(argc!=4){
+        printf("输入格式有误，格式如下\n./sudoku <inputfile> <sudoku_num> <thread_num>\n");
         return 0;
     }
-    int thread_num_init=atoi(argv[2]);
+    sudoku_num = atoi(argv[2]);
+    int thread_num_init=atoi(argv[3]);
     char *filename = argv[1];
     init(thread_num_init);
     pthread_t tid[n_pthread];
@@ -137,12 +140,16 @@ int main (int argc, char *argv[])
             pthread_cond_wait(&empty, &visit_buf);
         }
         //生产开始
-        if(fgets(buf[fill_ptr], 83, fp) != NULL){    //put函数在这里
+        if(fgets(buf[fill_ptr], 83, fp) != NULL &&sudoku_readnum<sudoku_num){    //put函数在这里  fgets每次读取一行
+            sudoku_readnum++;
             //printf("生产%d\n", total);
             fill_ptr = (fill_ptr + 1) % n_pthread;
             ++n_data;
         }
-        else{
+        else if(fgets(buf[fill_ptr], 83, fp) == NULL &&sudoku_readnum<sudoku_num){ //文件读完 数量不够   
+            rewind(fp);
+        }
+        else if(sudoku_readnum>=sudoku_num){
             end = true;  //读到文件末尾了
             pthread_mutex_unlock(&visit_buf);
             pthread_cond_broadcast(&full);  //广播唤醒所有消费者 没有数据了
