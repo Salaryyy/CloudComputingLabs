@@ -77,15 +77,19 @@ void *solver(void *arg)
     while (1)
     {
         pthread_mutex_lock(&visit_buf);
-        if (n_data == 0 && end)
-        { //文件读到尾了
-            finish_num++;
-            pthread_mutex_unlock(&visit_buf); //开锁跑路
-            //printf("paolu\n");
-            pthread_cond_wait(&tj, &visit_buf);
-            //pthread_exit(NULL);
-        }
-        while (n_data == 0 && !end) //这里类似于线程池的解法
+        // if (n_data == 0 && end)
+        // { //文件读到尾了
+        //     finish_num++;
+        //     pthread_mutex_unlock(&visit_buf); //开锁跑路
+        //     //printf("paolu\n");
+        //     pthread_cond_wait(&tj, &visit_buf);
+        //     //pthread_exit(NULL);
+        // }
+        // while (n_data == 0 && !end) //这里类似于线程池的解法
+        // {
+        //     pthread_cond_wait(&full, &visit_buf);
+        // }
+        while (n_data == 0) //这里类似于线程池的解法
         {
             pthread_cond_wait(&full, &visit_buf);
         }
@@ -174,12 +178,12 @@ int main(int argc, char *argv[])
             printf("文件不存在\n");
             continue;
         }
-        finish_num = 0;
+        //finish_num = 0;
         //scanf("%s", filename);
         FILE *fp = fopen(filename, "r");
         total = 0;
-        int64_t start = now();
-        pthread_cond_broadcast(&tj);
+        //int64_t start = now();
+        //pthread_cond_broadcast(&tj);
         while (1)
         { //生产者
             pthread_mutex_lock(&visit_buf);
@@ -197,20 +201,20 @@ int main(int argc, char *argv[])
             }
             else
             {
-                end = true; //读到文件末尾了
+                //end = true; //读到文件末尾了
                 pthread_mutex_unlock(&visit_buf);
-                pthread_cond_broadcast(&full); //广播唤醒所有消费者 没有数据了
+                //pthread_cond_broadcast(&full); //广播唤醒所有消费者 没有数据了
                 break;
             }
             pthread_cond_signal(&full);
             pthread_mutex_unlock(&visit_buf);
         }
-        while (finish_num != n_pthread)
-            ;
+        // while (finish_num != n_pthread)
+        //     ;
 
-        int64_t end = now();
-        double sec = (end - start) / 1000000.0;
-        printf("%f sec %f ms each %d, \n", sec, 1000 * sec / total, total);
+        // int64_t end = now();
+        // double sec = (end - start) / 1000000.0;
+        // printf("%f sec %f ms each %d, \n", sec, 1000 * sec / total, total);
     }
 
     //等待子线程全部完成
