@@ -28,13 +28,13 @@ int use_ptr = 0;
 int n_data = 0;
 bool end = false;
 
-FILE *result;
+//FILE *result;
 
 void init(int n){
     print_order=(pthread_cond_t *)malloc(n*sizeof(pthread_cond_t));
     buf=(char **)malloc(n*sizeof(char *));
     n_pthread=n;
-    result=fopen("result.dat","w+");
+    //result=fopen("result.dat","w+");
 }
 
 void program_end(){
@@ -86,23 +86,23 @@ void *solver(void *arg)
 
     
         //这里还有个大问题，输出顺序
-        pthread_mutex_lock(&lock_print);
-        while(myturn != cur_print){
-            //printf("第%d行想打印，但是没轮到我, 在%d号条件变量上等待\n", record_print, myturn);
-            pthread_cond_wait(&print_order[myturn], &lock_print);
-        }
+        // pthread_mutex_lock(&lock_print);
+        // while(myturn != cur_print){
+        //     //printf("第%d行想打印，但是没轮到我, 在%d号条件变量上等待\n", record_print, myturn);
+        //     pthread_cond_wait(&print_order[myturn], &lock_print);
+        // }
         
-        //打印到屏幕 注释掉可以省不少时间
-        //printf("现在打印第%d行", record_print);
-        for(int i = 0; i < 81; ++i)
-            fprintf(result, "%d", board[i]); 
-            //printf("%d", board[i]);
-        fputs("\n",result);
-        //printf("唤醒%d\n", (myturn + 1) % n_pthread);
+        // //打印到屏幕 注释掉可以省不少时间
+        // //printf("现在打印第%d行", record_print);
+        // for(int i = 0; i < 81; ++i)
+        //     fprintf(result, "%d", board[i]); 
+        //     //printf("%d", board[i]);
+        // fputs("\n",result);
+        // //printf("唤醒%d\n", (myturn + 1) % n_pthread);
 
-        cur_print = (cur_print + 1) % n_pthread;
-        pthread_cond_signal(&print_order[(myturn + 1) % n_pthread]);
-        pthread_mutex_unlock(&lock_print);
+        // cur_print = (cur_print + 1) % n_pthread;
+        // pthread_cond_signal(&print_order[(myturn + 1) % n_pthread]);
+        // pthread_mutex_unlock(&lock_print);
 
     }
 }
@@ -159,7 +159,7 @@ int main (int argc, char *argv[])
     
     int64_t end = now();
     double sec = (end-start)/1000000.0;
-    printf("%f sec %f ms each %d, \n", sec, 1000*sec/total, total);
+    printf("%f sec %f ms each %d \n", sec, 1000*sec/total, total);
     //释放缓冲区
     for(int i = 0; i < n_pthread; ++i)
         free(buf[i]);

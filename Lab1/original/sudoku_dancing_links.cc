@@ -2,8 +2,8 @@
 #include <memory.h>
 #include <map>
 #include <vector>
-#include "sudoku.h"
 
+#include "sudoku.h"
 using namespace std;
 
 struct Node;
@@ -211,15 +211,6 @@ struct Dance
                 //assert(cell != -1 && val != -1);
                 inout_[cell] = val;
             }
-            /*for(int i = 0; i < 81; ++i){
-                printf("%d", inout_[i]);
-                if(i%3 == 2)
-                    printf(" ");
-                if(i%9 == 8)
-                    printf("\n");
-                if(i%27 == 26)
-                    printf("\n");
-            }*/
             return true;
         }
 
@@ -261,7 +252,7 @@ struct Dance
     }
 };
 
-bool solve_sudoku_dancing_links(int *board)
+bool solve_sudoku_dancing_links(int unused)
 {
   Dance d(board);
   return d.solve();
