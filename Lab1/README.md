@@ -8,3 +8,5 @@ test.py 读取 result.dat 文件中的数据，进行平均值的计算以及统
 test2.py 读取 result.dat 以及 result2.dat 文件中的数据，result2.dat 文件从其他设备运行上面的自动化脚本得出，需复制到同一目录下。
 
 注：需要将原实验代码编译后，命名为 `sudoku_` 放入同一目录中，以计算加速比
+
+original 文件夹中为此实验的原始代码
