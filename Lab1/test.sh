@@ -2,13 +2,32 @@
 thread_num=1
 inputfile="input.txt"
 result="result.dat"
+result_="result_.dat"
 if [ -e $result ]
     then 
         true > $result
     else
         touch $result
 fi
-while(( $thread_num<=15 ))
+if [ -e $result_ ]
+    then 
+        true > $result_
+    else
+        touch $result_
+fi
+tmp=0
+while ((tmp<=2))
+do
+    ./sudoku_ $inputfile d > /dev/null
+    let "tmp++"
+done
+tmp=0
+while ((tmp<=10))
+do
+    ./sudoku_ $inputfile d | tee -a $result_
+    let "tmp++"
+done
+while(( $thread_num<=20 ))
 do
     test_num=0
     while(($test_num<=2))
