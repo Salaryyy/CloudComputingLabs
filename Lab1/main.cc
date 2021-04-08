@@ -54,15 +54,8 @@ void program_end()
     free(buf);
 }
 
-int64_t now()
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000000 + tv.tv_usec;
-}
-
-//void put() put写在main里面了
-
+//void put() 生产put写在main里面了
+//消费
 char *get()
 {
     char *tmp = buf[use_ptr];
