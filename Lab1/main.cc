@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <list>
+
 #include "sudoku.h"
 #include "tools.h"
 
@@ -24,14 +25,15 @@ pthread_cond_t *print_order;                              //控制输出顺序
 pthread_t *tid;                                           //解题线程
 pthread_t file_thread;                                    //读文件线程
 
+char **buf;             //缓冲区，存放题目
 int n_pthread;          //线程数量
 int total = 0;          //解决问题总数
+int n_data = 0;         //缓冲区剩余题目个数
+int use_ptr = 0;        //消费下标
+int fill_ptr = 0;       //生产下标
 int cur_print = 0;      //当前打印者编号
 int finish_num = 0;     //当前打开的文件 线程完成的数量
-char **buf;             //缓冲区，存放题目
-int fill_ptr = 0;       //生产下标
-int use_ptr = 0;        //消费下标
-int n_data = 0;         //缓冲区剩余题目个数
+
 //bool endfile = false; //是否读到文件尾
 
 std::list<char *> file_list; //文件名队列 
@@ -41,14 +43,18 @@ void init()
     //获取cpu核心数
     int n = getCpuInfo(); 
     n_pthread = n;
+
     //缓冲区开辟n行
     buf = (char **)malloc(n * sizeof(char *));
     for (int i = 0; i < n_pthread; ++i)
         buf[i] = (char *)malloc(83);
+
     //n个条件变量控制输出
     print_order = (pthread_cond_t *)malloc(n * sizeof(pthread_cond_t));
+
     //n个线程号
     tid = (pthread_t *)malloc(n * sizeof(pthread_t));
+
     //初始化 输出顺序的条件变量
     for (int i = 0; i < n_pthread; ++i){
         print_order[i] = PTHREAD_COND_INITIALIZER;
@@ -66,6 +72,7 @@ void program_end()
 }
 
 //void put() 生产put写在main里面了
+
 //消费
 char *get()
 {
@@ -75,6 +82,7 @@ char *get()
     return tmp;
 }
 
+//解题执行函数
 void *solver(void *arg)
 {
     int board[81];
@@ -145,7 +153,6 @@ int main(int argc, char *argv[])
     while(1){
 
         while(file_list.size() == 0);  //这里可以加个cond，算了没啥必要-.-
-        //printf("%d", file_list.size());
         //从队列里面获取一个文件名, 反正只有一个生产者, 下来就肯定有文件可读，所以就不加cond了
         pthread_mutex_lock(&lock_file);
         strcpy(filename, file_list.front());
