@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include "threadpool.h"
 #include "tools.h"
+#include <getopt.h>
 
 
 // 指定界面
@@ -209,12 +210,43 @@ int main(int argc, char *argv[]){
         printf("./httpserver --ip 127.0.0.1 --port 8888 --number-thread 8\n");
         exit(1);
     }
-    ip = ip_int(argv[2]);
-     if(ip==__INT32_MAX__){//非法地址
-        exit(1);
+    while(1){
+        int option_index=0;
+        static struct option long_options[]={
+            {"ip",              required_argument,  0,  0},
+            {"port",            required_argument,  0,  0},
+            {"number-thread",   required_argument,  0,  0}
+        };
+        int c = getopt_long(argc, argv, "", long_options, &option_index);
+        if(c == -1){
+            break;
+        }
+        //printf("%d\n",option_index);
+        switch (option_index)
+        {
+        case 0:
+            ip = ip_int(optarg);
+            if(ip==__INT32_MAX__){//非法地址
+                exit(1);
+            }
+            break;
+        case 1:
+            port = atoi(optarg);
+            break;
+        case 2:
+            n_thread = atoi(optarg);
+            break;
+        default:
+            printf("参数错误\n");
+            exit(1);
+        }
     }
-    port = atoi(argv[4]);
-    n_thread = atoi(argv[6]);
+    // ip = ip_int(argv[2]);
+    //  if(ip==__INT32_MAX__){//非法地址
+    //     exit(1);
+    // }
+    // port = atoi(argv[4]);
+    // n_thread = atoi(argv[6]);
     //printf("%d, %d, %d\n", ip, port, n_thread);
 
     // 设置好监听套接字
