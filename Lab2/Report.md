@@ -34,21 +34,21 @@
 
 make并允许服务器程序，IP 为 127.0.0.1，监听端口为 8888，线程数为 8。
 
-![image-20210506225608924](img\make并运行.png)
+![image-20210506225608924](img/make并运行.png)
 
 通过 CURL 使用 GET 请求获取根目录页面。
 
-![image-20210506225216718](img\使用CURL通过GET请求index页面.png)
+![image-20210506225216718](img/使用CURL通过GET请求index页面.png)
 
 通过 CURL 通过POST请求postshow页面。
 
-![image-20210506225216718](img\使用CURL通过POST请求postshow页面.png)
+![image-20210506225216718](img/使用CURL通过POST请求postshow页面.png)
 
 使用 ab 进行并发压力测试
 
-![image-20210506230242535](img\ab压力测试1.png)
+![image-20210506230242535](img/ab压力测试1.png)
 
-![image-20210506230342173](img\ab压力测试2.png)
+![image-20210506230342173](img/ab压力测试2.png)
 
 
 
