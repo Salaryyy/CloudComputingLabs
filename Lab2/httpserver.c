@@ -210,6 +210,9 @@ int main(int argc, char *argv[]){
         exit(1);
     }
     ip = ip_int(argv[2]);
+     if(ip==__INT32_MAX__){//非法地址
+        exit(1);
+    }
     port = atoi(argv[4]);
     n_thread = atoi(argv[6]);
     //printf("%d, %d, %d\n", ip, port, n_thread);
