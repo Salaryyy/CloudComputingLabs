@@ -168,8 +168,8 @@ int get_line(int sock, char *buf, int size)
             buf[i] = c;
             i++;
         } else {    
-            if(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
-                continue; 
+           // if(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+            //    continue; 
             c = '\n';
         }
     }
