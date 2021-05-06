@@ -108,6 +108,10 @@ void http_request(const char* request, int cfd)
 
     char* file = path+1; // 去掉path中的/ 获取访问文件名
     // 获取文件属性
+    if(strlen(file)==0){
+        file="index.html";
+    }
+    //printf("file: %s\n",file);
     struct stat st;
     int ret = stat(file, &st);
     if(ret == -1) { 
