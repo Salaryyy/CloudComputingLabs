@@ -94,7 +94,7 @@ void send_file(int cfd, const char* filename)
         exit(1);
     }
 
-    //close(fd);
+    close(fd);
 }
 
 
@@ -129,28 +129,33 @@ void *http_hander(void *argc){
 
     // 将浏览器发过来的数据, 读到line中 
     char line[1024] = {0};
+    int data_len = 0;
     // 读请求行
     int len = get_line(confd, line, sizeof(line));
     if(len == 0){   // 为啥用游览器访问这里要跳转好几次
         goto end;      
     } 
     else{ 
-    	printf("============= 请求头 ============\n");   
-        printf("请求行数据: %s", line);
+    	//printf("============= 请求头 ============\n");   
+        //printf("请求行数据: %s", line);
         // 还有数据没读完, 继续读走, 不要留在buf中了
 		while(1) 
         {
 			char buf[1024] = {0};
 			len = get_line(confd, buf, sizeof(buf));	
+            if(strncasecmp("Content-Length", buf, 14) == 0){
+                strcpy(buf, buf + 16);
+                data_len = atoi(buf);
+            }
 			if(buf[0] == '\n'){
                 break;	
             }
             else if(len == 0){
                 break;
             }
-            printf("%s", buf);
+            //printf("%s", buf);
 		}
-        printf("============= The End ============\n");
+       //printf("============= The End ============\n");
     }
 
     char method[12], path[1024], protocol[12];
@@ -162,7 +167,8 @@ void *http_hander(void *argc){
     }
     else if(strncasecmp("post", line, 4) == 0){ // 这里还要固定文件名 正则表达式拿下来
         // 实体行里面没有换行符号 读一次就行
-		int len = get_line(confd, line, sizeof(line));
+	//char *data = malloc()
+	int len = get_line(confd, line, data_len);
         char name[50], id[50];
         //printf("%s", line);
         if(strcmp(path, "/Post_show") != 0 || !get_name_id(line, len, name, id)){ // 路径不对 或者键值对不对
@@ -189,7 +195,7 @@ void *http_hander(void *argc){
 
     // 关闭文件描述符 和 释放对应空间  一定要关 否则文件描述符很快就会达到上限
     end:
-        printf("客户端断开了连接...\n");
+        //printf("客户端 %d 断开了连接...\n", confd);
         close(confd);  
         free(p_confd);
 }
@@ -233,10 +239,10 @@ int main(int argc, char *argv[]){
         
         //看一下客户端信息
         char str[1024];
-        printf("received from %s at PORT %d\n",
-                inet_ntop(AF_INET, &cliaddr.sin_addr, str, sizeof(str)),
-                ntohs(cliaddr.sin_port));
-        printf("cfd: %d\n", *connfd);
+        // printf("received from %s at PORT %d\n",
+        //         inet_ntop(AF_INET, &cliaddr.sin_addr, str, sizeof(str)),
+        //         ntohs(cliaddr.sin_port));
+        // printf("cfd: %d\n", *connfd);
 
 
         // 加入线程池中
