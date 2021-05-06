@@ -150,13 +150,11 @@ int get_line(int sock, char *buf, int size)
     char c = '\0';
     int n;
     while ((i < size ) && (c != '\n')) {   
-
         //n = recv(sock, &c, 1, MSG_DONTWAIT); // 非阻塞  即没有数据不会死等 然后就会跳到else 跳出循环 如果没有数据就返回0
-
         //设置定时器
-        struct timeval timeout={0,1};//3s
+        struct timeval timeout = {0, 1};//3s
         // int ret=setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));
-        int ret=setsockopt(sock,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));
+        int ret=setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
         n = recv(sock, &c, 1, 0);
 	    if (n > 0) {        
             if (c == '\r') {        
@@ -170,20 +168,11 @@ int get_line(int sock, char *buf, int size)
             buf[i] = c;
             i++;
         } else {    
-            //printf("wule\n");   
+            if(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+                continue; 
             c = '\n';
-
-        //超时处理,当超时时间到达后，recv会返回错误，也就是-1，而此时的错误码是EAGAIN或者EWOULDBLOCK，POSIX.1-2001上允许两个任意一个出现都行，所以建议在判断错误码上两个都写上。
-        //如果socket是被对方用linger为0的形式关掉，也就是直接发RST的方式关闭的时候，recv也会返回错误，错误码是ENOENT
-        //还有一种经常在代码中常见的错误码，那就是EINTER，意思是系统在接收的时候因为收到其他中断信号而被迫返回，不算socket故障，应该继续接收。
-        //    if((n<0) &&(errno == EAGAIN||errno == EWOULDBLOCK||errno == EINTR))
-        //     {
-        //         continue;//继续接收数据
-        //     }
-        //     break;//跳出接收循环
         }
     }
     buf[i] = '\0';
-
     return i;
 }

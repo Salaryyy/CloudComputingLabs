@@ -84,6 +84,7 @@ void send_file(int cfd, const char* filename)
                 continue;
             } else {
                 perror("send error:");
+                close(fd);
                 exit(1);
             }
         }
@@ -103,7 +104,6 @@ void http_request(const char* request, int cfd)
     // 拆分http请求行
     char method[12], path[1024], protocol[12];
     sscanf(request, "%[^ ] %[^ ] %[^ ]", method, path, protocol);
-    //printf("method = %s, path = %s, protocol = %s\n", method, path, protocol);
 
     char* file = path+1; // 去掉path中的/ 获取访问文件名
     // 获取文件属性
@@ -136,55 +136,54 @@ void *http_hander(void *argc){
         goto end;      
     } 
     else{ 
-    	//printf("============= 请求头 ============\n");   
-        //printf("请求行数据: %s", line);
-        // 还有数据没读完, 继续读走, 不要留在buf中了
+    	// printf("============= 请求头 ============\n");   
+        // printf("请求行数据: %s", line);
 		while(1) 
         {
 			char buf[1024] = {0};
-			len = get_line(confd, buf, sizeof(buf));	
+			len = get_line(confd, buf, sizeof(buf));
             if(strncasecmp("Content-Length", buf, 14) == 0){
                 strcpy(buf, buf + 16);
                 data_len = atoi(buf);
-            }
+            }	
 			if(buf[0] == '\n'){
-                break;	
+                break;
             }
             else if(len == 0){
                 break;
             }
             //printf("%s", buf);
 		}
-       //printf("============= The End ============\n");
+        //printf("============= The End ============\n");
     }
 
     char method[12], path[1024], protocol[12];
     sscanf(line, "%[^ ] %[^ ] %[^ ]", method, path, protocol);
 
-    //判断请求方法
+    // 判断请求方法
+    // get方法 以空行为结尾
     if(strncasecmp("get", line, 3) == 0) {
         http_request(line, confd);
     }
+    // post方法 空行后面还有实体行
     else if(strncasecmp("post", line, 4) == 0){ // 这里还要固定文件名 正则表达式拿下来
         // 实体行里面没有换行符号 读一次就行
-	//char *data = malloc()
-	int len = get_line(confd, line, data_len);
+        // 这里不用设置长度了 使用了定时器的话
+		int len = get_line(confd, line, data_len);
         char name[50], id[50];
-        //printf("%s", line);
         if(strcmp(path, "/Post_show") != 0 || !get_name_id(line, len, name, id)){ // 路径不对 或者键值对不对
             send_error(confd, 404, "Not Found", "Not Found"); 
             goto end;
         }
-        //printf("%s  %s", name, id);
         char dest[1024] = {'\0'};
         strcat(dest, "Your Name: ");
         strcat(dest, name);
         strcat(dest, "\nID: ");
         strcat(dest, id);
-        strcat(dest, "\n");
         send_error(confd, 200, "OK", dest);
     }
-    else{// 其他方法不管
+    // 其他方法不管
+    else{
         char dest[1024] = {'\0'};
         strcat(dest, "Does not implement this method: ");
         strcat(dest, method);
@@ -241,7 +240,7 @@ int main(int argc, char *argv[]){
         *connfd = accept(listenfd, (struct sockaddr *)&cliaddr, &cliaddr_len);   //阻塞监听客户端链接请求
         
         //看一下客户端信息
-        char str[1024];
+        //char str[1024];
         // printf("received from %s at PORT %d\n",
         //         inet_ntop(AF_INET, &cliaddr.sin_addr, str, sizeof(str)),
         //         ntohs(cliaddr.sin_port));
