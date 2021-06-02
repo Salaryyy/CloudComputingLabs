@@ -1,0 +1,36 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+MAXSIZE	epoll_server.c	14;"	d	file:
+_EPOLL_SERVER_H	epoll_server.h	2;"	d
+decode_str	epoll_server.c	/^void decode_str(char *to, char *from)$/;"	f	signature:(char *to, char *from)
+decode_str	epoll_server.h	/^void decode_str(char *to, char *from);$/;"	p	signature:(char *to, char *from)
+disconnect	epoll_server.c	/^void disconnect(int cfd, int epfd)$/;"	f	signature:(int cfd, int epfd)
+disconnect	epoll_server.h	/^void disconnect(int cfd, int epfd);$/;"	p	signature:(int cfd, int epfd)
+do_accept	epoll_server.c	/^void do_accept(int lfd, int epfd)$/;"	f	signature:(int lfd, int epfd)
+do_accept	epoll_server.h	/^void do_accept(int lfd, int epfd);$/;"	p	signature:(int lfd, int epfd)
+do_read	epoll_server.c	/^void do_read(int cfd, int epfd)$/;"	f	signature:(int cfd, int epfd)
+do_read	epoll_server.h	/^void do_read(int cfd, int epfd);$/;"	p	signature:(int cfd, int epfd)
+encode_str	epoll_server.c	/^void encode_str(char* to, int tosize, const char* from)$/;"	f	signature:(char* to, int tosize, const char* from)
+encode_str	epoll_server.h	/^void encode_str(char* to, int tosize, const char* from);$/;"	p	signature:(char* to, int tosize, const char* from)
+epoll_run	epoll_server.c	/^void epoll_run(int port)$/;"	f	signature:(int port)
+epoll_run	epoll_server.h	/^void epoll_run(int port);$/;"	p	signature:(int port)
+get_file_type	epoll_server.c	/^const char *get_file_type(const char *name)$/;"	f	signature:(const char *name)
+get_file_type	epoll_server.h	/^const char *get_file_type(const char *name);$/;"	p	signature:(const char *name)
+get_line	epoll_server.c	/^int get_line(int sock, char *buf, int size)$/;"	f	signature:(int sock, char *buf, int size)
+get_line	epoll_server.h	/^int get_line(int sock, char *buf, int size);$/;"	p	signature:(int sock, char *buf, int size)
+hexit	epoll_server.c	/^int hexit(char c)$/;"	f	signature:(char c)
+http_request	epoll_server.c	/^void http_request(const char* request, int cfd)$/;"	f	signature:(const char* request, int cfd)
+http_request	epoll_server.h	/^void http_request(const char* request, int cfd);$/;"	p	signature:(const char* request, int cfd)
+init_listen_fd	epoll_server.c	/^int init_listen_fd(int port, int epfd)$/;"	f	signature:(int port, int epfd)
+init_listen_fd	epoll_server.h	/^int init_listen_fd(int port, int epfd);$/;"	p	signature:(int port, int epfd)
+main	main.c	/^int main(int argc, const char* argv[])$/;"	f	signature:(int argc, const char* argv[])
+send_dir	epoll_server.c	/^void send_dir(int cfd, const char* dirname)$/;"	f	signature:(int cfd, const char* dirname)
+send_dir	epoll_server.h	/^void send_dir(int cfd, const char* dirname);$/;"	p	signature:(int cfd, const char* dirname)
+send_file	epoll_server.c	/^void send_file(int cfd, const char* filename)$/;"	f	signature:(int cfd, const char* filename)
+send_file	epoll_server.h	/^void send_file(int cfd, const char* filename);$/;"	p	signature:(int cfd, const char* filename)
+send_respond_head	epoll_server.c	/^void send_respond_head(int cfd, int no, const char* desp, const char* type, long len)$/;"	f	signature:(int cfd, int no, const char* desp, const char* type, long len)
+send_respond_head	epoll_server.h	/^void send_respond_head(int cfd, int no, const char* desp, const char* type, long len);$/;"	p	signature:(int cfd, int no, const char* desp, const char* type, long len)
