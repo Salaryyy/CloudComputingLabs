@@ -54,6 +54,6 @@ Conf getConf(std::string filename){
 //  判断文件是否存在
 //  True    存在
 //  False   不存在
-bool checkConf(const std::string& name) {
+bool isExistConf(const std::string& name) {
     return ( access( name.c_str(), F_OK ) != -1 );
 }

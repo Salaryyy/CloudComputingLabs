@@ -23,4 +23,4 @@ struct Conf
 };
 
 Conf getConf(std::string filename);
-bool checkConf(const std::string& name);
+bool isExistConf(const std::string& name);
