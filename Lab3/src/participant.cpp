@@ -11,36 +11,68 @@
 #include <ctype.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <iostream>
+#include "tools.h"
+using namespace std;
+
+class participant{
+private:
+    unsigned int myip;
+    unsigned short myport;
+    unsigned int ip_coordinator;
+    unsigned short port_coordinator;
+
+    int connectSocket;
+    sockaddr_in client; 
+    sockaddr_in server;
+public:
+    participant(unsigned short port){
+        // 在这里读配置文件将ip和port设置好
+        char ip[32] = "127.0.0.1";
+        myip = ip_int(ip);
+        myport = port;
+        ip_coordinator = myip;
+        port_coordinator = 8091;
+    }
+
+    void init_addr(){
+        connectSocket = socket(AF_INET, SOCK_STREAM, 0);
+        // 协调者信息
+        server.sin_family = AF_INET;
+        server.sin_addr.s_addr = htonl(ip_coordinator); 
+        server.sin_port = htons(port_coordinator);
+
+        // 绑定自己信息
+        client.sin_family = AF_INET;
+        client.sin_addr.s_addr = htonl(myip); 
+        client.sin_port = htons(myport);
+
+    }
+
+    void connect_coordinator(){
+        int opt = 1;                                                    //设置端口重用
+        setsockopt(connectSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); 
+        // 如果不bind 系统自动分配端口号
+        if(bind(connectSocket, (struct sockaddr *) &client, sizeof(client)) == SO_ERROR){
+            printf("bind() failed.\n");
+            close(connectSocket);
+            exit(1);
+        }
+
+        while(connect(connectSocket, (struct sockaddr*)&server, sizeof(server)) != 0){
+            printf("连接协调者失败， 继续尝试\n");
+            sleep(1);
+        }
+    }
+};
+
 
 int main(int argc, char **argv){
-    int connectSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if(connectSocket == -1){
-        perror("socket error");
-    }
-    // 协调者信息
-    sockaddr_in coordinator; 
-    coordinator.sin_family = AF_INET;
-    coordinator.sin_addr.s_addr = inet_addr("127.0.0.1");
-    coordinator.sin_port = htons(8091);
- 
-    // 绑定自己信息
-    sockaddr_in participant;
-    participant.sin_family = AF_INET;
-    participant.sin_addr.s_addr = inet_addr("127.0.0.1");//
-    participant.sin_port = htons(atoi(argv[1]));
-    int opt = 1;                                                    //设置端口重用
-    setsockopt(connectSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); 
-    if(bind(connectSocket, (struct sockaddr *) &participant, sizeof(participant)) == SO_ERROR){
-        printf("bind() failed.\n");
-        close(connectSocket);
-        return 1;
-    }
+    participant part(atoi(argv[1]));
+    part.init_addr();
+    part.connect_coordinator();
 
-    
-    while(connect(connectSocket, (struct sockaddr*)&coordinator, sizeof(coordinator)) != 0){
-        printf("连接协调者失败， 继续尝试\n");
-        sleep(1);
-    }
+    // 心跳机制
 
 
     while(1){
