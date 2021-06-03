@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <ctype.h>
 #include <sys/socket.h>
+#include <signal.h>
 #include <pthread.h>
 #include <iostream>
 #include "tools.h"
@@ -102,12 +103,9 @@ public:
         //尝试获取一下心跳锁，因为有可能心跳线程正在重连协调者，这个时候应该阻塞等待
         pthread_mutex_lock(&heart_lock);
         pthread_mutex_unlock(&heart_lock);
-        //sleep(1);
         packet_head head;// 先接受包头
         //这里得设置一个超时 因为此时也可能断开连接 发生超时后跳转到开头
-        
-        //尝试太多次失败后会直接被操作系统kill
-        //cout<<"准备recv"<<endl;
+        //尝试太多次失败后会直接被操作系统kill?
         int ret = recv(connectSocket, &head, sizeof(head), MSG_DONTWAIT);//？？MSG_DONTWAIT
         if(ret != sizeof(head)){//?
             //cout<<"长度只有"<<ret<<endl;
@@ -116,7 +114,6 @@ public:
         // 接收到心跳回应包
         if(head.type == heart){
             cout<<"收到来自协调者的心跳回应包"<<endl;
-
             pthread_mutex_lock(&heart_lock);
             heart_count = 0;       // 每次收到心跳包，count置0
             recv_heart = true;
@@ -127,6 +124,19 @@ public:
         else{
             //调用处理数据包的函数解析并发送数据
         }
+    }
+
+    // !!!! 这个地方协调者那边也需要设置一下
+    // 如果尝试send到一个disconnected socket上，就会让底层抛出一个SIGPIPE信号。
+    // 这个信号的缺省处理方法是退出进程，大多数时候这都不是我们期望的。
+    // 因此我们需要重载这个信号的处理方法。调用以下代码，即可安全的屏蔽SIGPIP
+    void handle_for_sigpipe(){
+        struct sigaction sa;
+        memset(&sa, '\0', sizeof(sa));
+        sa.sa_handler = SIG_IGN;
+        sa.sa_flags = 0;
+        if(sigaction(SIGPIPE, &sa, NULL))
+            return;
     }
 
     // 声明为普通的友元函数? 供子线程去调用
@@ -161,7 +171,6 @@ void* send_heart(void* argv){
         // 再等一秒钟 检测是不是收到了包
         sleep(1);
         pthread_mutex_lock(&(p->heart_lock));
-        //cout<<"发送heart方现在持有heart"<<endl;
         if(p->recv_heart){
             p->recv_heart = false;
         }
@@ -175,7 +184,6 @@ void* send_heart(void* argv){
                 p->connect_coordinator(); // !!! 重新建连的时候不能读数据
             }
         }
-        //cout<<"发送heart方现在释放heart"<<endl;
         pthread_mutex_unlock(&(p->heart_lock));
     }
 }
@@ -185,10 +193,10 @@ int main(int argc, char **argv){
     participant part(atoi(argv[1]));
     part.init_addr();
     part.connect_coordinator();
+    part.handle_for_sigpipe();
     part.run();
 
     // 心跳机制
-
 
     while(1){
         sleep(1);

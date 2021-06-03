@@ -136,7 +136,11 @@ public:
     void receive_participant(){
         for(int i = 0; i < n_participant; ++i){
             packet_head head;
-            recv(fd_participant[i], &head, sizeof(head), 0);   // 先接受包头
+            int ret;
+            ret = recv(fd_participant[i], &head, sizeof(head), 0);   // 先接受包头
+            if(ret != sizeof(head)){
+                continue;
+            }
             // 心跳包
             if(head.type == heart){
                 count_heart[i] = 0;        // 每次收到心跳包，count置0
