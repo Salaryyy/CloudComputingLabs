@@ -1,0 +1,12 @@
+coordinator: coordinator.o tools.o participant
+	g++ coordinator.o tools.o -o coordinator
+participant: participant.o tools.o
+	g++ participant.o tools.o -o participant
+coordinator.o: coordinator.cpp 
+	g++ -c coordinator.cpp -o coordinator.o
+participant.o: participant.cpp
+	g++ -c participant.cpp -o participant.o
+tools.o: tools.cpp
+	g++ -c tools.cpp -o tools.o
+clean: 
+	rm *.o participant coordinator
