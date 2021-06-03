@@ -17,6 +17,7 @@
 #include <unordered_set>
 #include <cstring>
 #include "tools.h"
+#include "conf.h"
 using namespace std;
 
 class coordinator{
@@ -29,21 +30,31 @@ private:
     vector<unsigned short> port_participant;
     vector<int> fd_participant;
     struct sockaddr_in servaddr;
-
+    Conf myconf;
 
 public:
-    coordinator(){
+    coordinator(Conf conf){
         // 在这里读配置文件将ip和port设置好
-        char ip[32] = "127.0.0.1";
+        myconf=conf;
+        char ip[32];
+        strcpy(ip,conf.coorIp.c_str());
         myip = ip_int(ip);
-        myport = 8091;
-        n_participant = 3;
-        ip_participant.resize(3);
-        ip_participant[0] = myip, ip_participant[1] = myip, ip_participant[2] = myip;
-        port_participant.resize(3);
-        port_participant[0] = 8092, port_participant[1] = 8093, port_participant[2] = 8094; 
-        fd_participant.resize(3);
-        fd_participant[0] = -1, fd_participant[1] = -1, fd_participant[2] = -1;
+        //myport = 8091;
+        myport = conf.coorPort; 
+        n_participant = conf.partNum;
+        ip_participant.resize(n_participant);
+        port_participant.resize(n_participant);
+        fd_participant.resize(n_participant);
+        for(int i=0;i<n_participant;i++)
+        {
+            strcpy(ip,conf.coorIp.c_str());
+            ip_participant[i]=ip_int(ip);
+            port_participant[i]=conf.part[i].port;
+            fd_participant[i] = -1;
+        }
+        // ip_participant[0] = myip, ip_participant[1] = myip, ip_participant[2] = myip;
+        // port_participant[0] = 8092, port_participant[1] = 8093, port_participant[2] = 8094; 
+        // fd_participant[0] = -1, fd_participant[1] = -1, fd_participant[2] = -1;
 
     }
 
@@ -122,8 +133,9 @@ public:
 
 
 
-int main(){
-    coordinator coor;
+int main(int argc, char **argv){
+    Conf conf=getConf(getOptConf(argc,argv));
+    coordinator coor(conf);
     coor.init_serveraddr();
     coor.connect_participant();
 }

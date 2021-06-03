@@ -4,7 +4,8 @@
 #include <fstream>
 
 #include <unistd.h>
-#include <string.h>
+#include <cstring>
+#include <string>
 
 
 struct Part

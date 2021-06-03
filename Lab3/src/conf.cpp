@@ -1,4 +1,3 @@
-#include <iostream>
 #include "conf.h"
 
 //  读取配置文件

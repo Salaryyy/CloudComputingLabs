@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <iostream>
 #include "tools.h"
+#include "conf.h"
 using namespace std;
 
 class participant{
@@ -21,18 +22,25 @@ private:
     unsigned short myport;
     unsigned int ip_coordinator;
     unsigned short port_coordinator;
-
+    Conf myconf;
     int connectSocket;
     sockaddr_in client; 
     sockaddr_in server;
 public:
-    participant(unsigned short port){
+    participant(Conf conf){
         // 在这里读配置文件将ip和port设置好
-        char ip[32] = "127.0.0.1";
+        myconf=conf;
+        char ip[32];
+        strcpy(ip,conf.part[0].ip.c_str());
         myip = ip_int(ip);
-        myport = port;
-        ip_coordinator = myip;
-        port_coordinator = 8091;
+        //myport = 8091;
+        myport = conf.part[0].port; 
+        // myip = ip_int(ip);
+        // myport = port;
+        strcpy(ip,conf.part[0].ip.c_str());
+        ip_coordinator = ip_int(ip);
+        port_coordinator = conf.coorPort;
+        cout<<myip<<" "<<myport<<" "<<ip_coordinator<<" "<<port_coordinator<<endl;
     }
 
     void init_addr(){
@@ -68,7 +76,8 @@ public:
 
 
 int main(int argc, char **argv){
-    participant part(atoi(argv[1]));
+    Conf conf=getConf(getOptConf(argc, argv));
+    participant part(conf);
     part.init_addr();
     part.connect_coordinator();
 
