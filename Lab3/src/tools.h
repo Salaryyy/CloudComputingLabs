@@ -1,8 +1,8 @@
 #ifndef TOOLS_H
 #define TOOLS_H
 #define ERROR_SIZE 256
-#include <string>
-#include <getopt.h>
+
+
 //非法ip判断
 //bool get_IP_legal(regex_t *ipreg, const char *ip);
 
@@ -17,7 +17,5 @@ int get_line(int sock, char *buf, int size);
 
 // 获取name和id
 bool get_name_id(char *str, int len, char *name, char *id);
-
-std::string getOptConf(int argc, char **argv);
 
 #endif

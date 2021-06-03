@@ -1,1 +1,0 @@
-./coordinator --config_path ./coordinator_sample.conf

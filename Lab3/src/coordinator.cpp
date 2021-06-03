@@ -17,8 +17,18 @@
 #include <unordered_set>
 #include <cstring>
 #include "tools.h"
-#include "conf.h"
 using namespace std;
+
+
+// 包头结构
+enum Type {heart, data};
+struct packet_head
+{
+    Type type;
+    int length;
+};
+
+void *response_heart(void *argv);
 
 class coordinator{
 private:
@@ -29,33 +39,25 @@ private:
     vector<unsigned int> ip_participant;
     vector<unsigned short> port_participant;
     vector<int> fd_participant;
+    vector<int> count_heart;
     struct sockaddr_in servaddr;
-    Conf myconf;
+
 
 public:
-    coordinator(Conf conf){
+    coordinator(){
         // 在这里读配置文件将ip和port设置好
-        myconf=conf;
-        char ip[32];
-        strcpy(ip,conf.coorIp.c_str());
+        char ip[32] = "127.0.0.1";
         myip = ip_int(ip);
-        //myport = 8091;
-        myport = conf.coorPort; 
-        n_participant = conf.partNum;
-        ip_participant.resize(n_participant);
-        port_participant.resize(n_participant);
-        fd_participant.resize(n_participant);
-        for(int i=0;i<n_participant;i++)
-        {
-            strcpy(ip,conf.coorIp.c_str());
-            ip_participant[i]=ip_int(ip);
-            port_participant[i]=conf.part[i].port;
-            fd_participant[i] = -1;
-        }
-        // ip_participant[0] = myip, ip_participant[1] = myip, ip_participant[2] = myip;
-        // port_participant[0] = 8092, port_participant[1] = 8093, port_participant[2] = 8094; 
-        // fd_participant[0] = -1, fd_participant[1] = -1, fd_participant[2] = -1;
-
+        myport = 8095;
+        n_participant = 3;
+        ip_participant.resize(3);
+        ip_participant[0] = myip, ip_participant[1] = myip, ip_participant[2] = myip;
+        port_participant.resize(3);
+        port_participant[0] = 8092, port_participant[1] = 8093, port_participant[2] = 8094; 
+        fd_participant.resize(3);
+        fd_participant[0] = -1, fd_participant[1] = -1, fd_participant[2] = -1;
+        count_heart.resize(3);
+        count_heart[0] = 0, count_heart[1] = 0, count_heart[2] = 0;
     }
 
     void init_serveraddr(){
@@ -89,7 +91,7 @@ public:
         socklen_t cliaddr_len = sizeof(cliaddr);
         while(1){
             //阻塞监听链接请求 这个连接可能来自参与者 可能来自客户端 需要判断一下
-            printf("等待连接中\n");
+            cout<<"等待连接中"<<endl;
             int connfd = accept(listenfd, (struct sockaddr *)&cliaddr, &cliaddr_len);   
             
             //看一下客户端信息
@@ -124,18 +126,52 @@ public:
                 }
             }
             
-            // 所有参与者都连上了 退出循环
-            if(cur_participant == n_participant)
+            if(cur_participant == n_participant){
+                cout<<"所有参与者都连接成功"<<endl;
                 break;
+            }
         }
     }
+
+    void receive_participant(){
+        for(int i = 0; i < n_participant; ++i){
+            packet_head head;
+            recv(fd_participant[i], &head, sizeof(head), 0);   // 先接受包头
+            // 心跳包
+            if(head.type == heart){
+                count_heart[i] = 0;        // 每次收到心跳包，count置0
+                cout<<"收到来自参与者"<<i<<"的心跳包"<<endl;
+                // 发回去
+                send(fd_participant[i], &head, sizeof(head), 0);
+                cout<<"给参与者"<<i<<"回应心跳包"<<endl;
+            }
+            
+            // 数据包
+            else{
+                // 数据包，通过head.length确认数据包长度 
+            }   
+
+
+        }
+    }
+
+    friend void *response_heart(void *argv);
+
+    void run(){
+        while(1)
+            receive_participant();
+    }
+
+    
 };
 
 
 
-int main(int argc, char **argv){
-    Conf conf=getConf(getOptConf(argc,argv));
-    coordinator coor(conf);
+
+int main(){
+    coordinator coor;
     coor.init_serveraddr();
     coor.connect_participant();
+    coor.run();
+    // 开个线程接收客户端连接
 }
