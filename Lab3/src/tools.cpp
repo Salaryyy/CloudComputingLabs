@@ -14,6 +14,7 @@
 #include <regex.h>
 #include "tools.h"
 
+
 //static char errbuf[ERROR_SIZE] = {0};
 
 //合法ip的正则
@@ -29,63 +30,60 @@
 //         return true;
 // 	}
 // 	else if(status == REG_NOMATCH) {
-// 		regerror(status, ipreg, errbuf, ERROR_SIZE);
+// 		regerror(status, ipreg, errbuf, ERROR_SIZE);	
 // 		//printf("%s\n", errbuf);
 //         memset(errbuf, 0, ERROR_SIZE);
 //         return false;
-
+		
 // 	}
 //     return true;
 // }
 
-bool get_name_id(char *str, int len, char *name, char *id)
-{
+bool get_name_id(char *str, int len, char *name, char *id){
     int spite = 0;
-    while (spite < len && str[spite] != '&')
+    while(spite < len && str[spite] != '&')
         ++spite;
-    if (spite == len)
+    if(spite == len)
         return false;
 
     // 获取name
     int equal1 = 0;
-    while (equal1 < spite && str[equal1] != '=')
+    while(equal1 < spite && str[equal1] != '=')
         ++equal1;
-    if (!(equal1 == 4 && str[0] == 'N' && str[1] == 'a' && str[2] == 'm' && str[3] == 'e'))
+    if(!(equal1 == 4 && str[0] == 'N' && str[1] == 'a' && str[2] == 'm' && str[3] == 'e'))
         return false;
     int index1 = 0;
-    for (int i = equal1 + 1; i < spite; ++i)
-    {
+    for(int i = equal1 + 1; i < spite; ++i){
         name[index1++] = str[i];
     }
     name[index1] = '\0';
 
     // 获取id
     int equal2 = spite + 1;
-    while (equal2 < len && str[equal2] != '=')
+    while(equal2 < len && str[equal2] != '=')
         ++equal2;
-    if (!(equal2 - spite == 3 && str[spite + 1] == 'I' && str[spite + 2] == 'D'))
+    if(!(equal2 - spite == 3 && str[spite + 1] == 'I' && str[spite + 2] == 'D'))
         return false;
     int index2 = 0;
-    for (int i = equal2 + 1; i < len; ++i)
-    {
+    for(int i = equal2 + 1; i < len; ++i){
         id[index2++] = str[i];
     }
-    id[index2] = '\0';
+    id[index2] = '\0'; 
     return true;
 }
 
 // ip转换成int 进行非法判断
 unsigned int ip_int(char *ip)
-{
+{   
     // //编译正则
     // regex_t ipreg1;
-    // int reg = regcomp(&ipreg1, ip_format, REG_EXTENDED);
-    // if(reg != 0) {
-    // 	regerror(reg, &ipreg1, errbuf, ERROR_SIZE);
-    // 	printf("%s\n", errbuf);
-    // 	memset(errbuf, 0, ERROR_SIZE);
-    // 	return 0;
-    // }
+	// int reg = regcomp(&ipreg1, ip_format, REG_EXTENDED);
+	// if(reg != 0) {
+	// 	regerror(reg, &ipreg1, errbuf, ERROR_SIZE);	
+	// 	printf("%s\n", errbuf);
+	// 	memset(errbuf, 0, ERROR_SIZE);
+	// 	return 0;
+	// }
     // if(!get_IP_legal(&ipreg1 ,ip)){
     //     printf("Illegal IP!! Please Check!\n");
     //     return __INT32_MAX__;
@@ -94,14 +92,10 @@ unsigned int ip_int(char *ip)
     unsigned char tmp = 0;
     //printf("%s\n", ip);
     //printf("%d\n", strlen(ip));
-    while (1)
-    {
-        if (*ip != '\0' && *ip != '.')
-        {
+    while (1) {
+        if (*ip != '\0' && *ip != '.') {
             tmp = tmp * 10 + *ip - '0';
-        }
-        else
-        {
+        } else {
             re = (re << 8) + tmp;
             if (*ip == '\0')
                 break;
@@ -117,7 +111,7 @@ unsigned int ip_int(char *ip)
 // {
 //     char* dot;
 //     // 自右向左查找‘.’字符, 如不存在返回NULL
-//     dot = strrchr(name, '.');
+//     dot = strrchr(name, '.');   
 //     if (dot == NULL)
 //         return "text/plain; charset=utf-8";
 //     if (strcmp(dot, ".html") == 0 || strcmp(dot, ".htm") == 0)
@@ -160,35 +154,27 @@ int get_line(int sock, char *buf, int size)
     int i = 0;
     char c = '\0';
     int n;
-    while ((i < size) && (c != '\n'))
-    {
+    while ((i < size ) && (c != '\n')) {   
         //n = recv(sock, &c, 1, MSG_DONTWAIT); // 非阻塞  即没有数据不会死等 然后就会跳到else 跳出循环 如果没有数据就返回0
         //设置定时器
-        struct timeval timeout = {0, 1}; //3s
+        struct timeval timeout = {0, 1};//3s
         // int ret=setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));
-        int ret = setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+        int ret=setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
         n = recv(sock, &c, 1, 0);
-        if (n > 0)
-        {
-            if (c == '\r')
-            {
+	    if (n > 0) {        
+            if (c == '\r') {        
                 n = recv(sock, &c, 1, MSG_PEEK); //不从管道中拿出来
-                if ((n > 0) && (c == '\n'))
-                {
+                if ((n > 0) && (c == '\n')) {              
                     recv(sock, &c, 1, 0);
-                }
-                else
-                {
+                } else {                       
                     c = '\n';
                 }
             }
             buf[i] = c;
             i++;
-        }
-        else
-        {
-            // if(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
-            //    continue;
+        } else {    
+           // if(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+            //    continue; 
             c = '\n';
         }
     }

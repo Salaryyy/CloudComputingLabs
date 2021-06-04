@@ -3,6 +3,7 @@
 #define ERROR_SIZE 256
 #include <string>
 #include <getopt.h>
+
 //非法ip判断
 //bool get_IP_legal(regex_t *ipreg, const char *ip);
 

@@ -1,7 +1,7 @@
 coordinator: coordinator.o tools.o conf.o participant
-	g++ coordinator.o tools.o conf.o -o coordinator
+	g++ coordinator.o tools.o conf.o -o coordinator -lpthread
 participant: participant.o tools.o conf.o
-	g++ participant.o tools.o conf.o -o participant
+	g++ participant.o tools.o conf.o -o participant -lpthread
 coordinator.o: coordinator.cpp 
 	g++ -c coordinator.cpp -o coordinator.o
 participant.o: participant.cpp

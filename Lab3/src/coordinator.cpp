@@ -20,6 +20,17 @@
 #include "conf.h"
 using namespace std;
 
+
+// 包头结构
+enum Type {heart, data};
+struct packet_head
+{
+    Type type;
+    int length;
+};
+
+void *response_heart(void *argv);
+
 class coordinator{
 private:
     unsigned int myip;
@@ -29,17 +40,18 @@ private:
     vector<unsigned int> ip_participant;
     vector<unsigned short> port_participant;
     vector<int> fd_participant;
-    struct sockaddr_in servaddr;
+    vector<int> count_heart;
     Conf myconf;
+    struct sockaddr_in servaddr;
+
 
 public:
     coordinator(Conf conf){
         // 在这里读配置文件将ip和port设置好
-        myconf=conf;
+        myconf = conf;
         char ip[32];
         strcpy(ip,conf.coorIp.c_str());
         myip = ip_int(ip);
-        //myport = 8091;
         myport = conf.coorPort; 
         n_participant = conf.partNum;
         ip_participant.resize(n_participant);
@@ -52,10 +64,9 @@ public:
             port_participant[i]=conf.part[i].port;
             fd_participant[i] = -1;
         }
-        // ip_participant[0] = myip, ip_participant[1] = myip, ip_participant[2] = myip;
-        // port_participant[0] = 8092, port_participant[1] = 8093, port_participant[2] = 8094; 
-        // fd_participant[0] = -1, fd_participant[1] = -1, fd_participant[2] = -1;
-
+        
+        count_heart.resize(3);
+        count_heart[0] = 0, count_heart[1] = 0, count_heart[2] = 0;
     }
 
     void init_serveraddr(){
@@ -89,7 +100,7 @@ public:
         socklen_t cliaddr_len = sizeof(cliaddr);
         while(1){
             //阻塞监听链接请求 这个连接可能来自参与者 可能来自客户端 需要判断一下
-            printf("等待连接中\n");
+            cout<<"等待连接中"<<endl;
             int connfd = accept(listenfd, (struct sockaddr *)&cliaddr, &cliaddr_len);   
             
             //看一下客户端信息
@@ -124,18 +135,59 @@ public:
                 }
             }
             
-            // 所有参与者都连上了 退出循环
-            if(cur_participant == n_participant)
+            if(cur_participant == n_participant){
+                cout<<"所有参与者都连接成功"<<endl;
                 break;
+            }
         }
     }
+
+    void receive_participant(){
+        for(int i = 0; i < n_participant; ++i){
+            packet_head head;
+            int ret;
+            ret = recv(fd_participant[i], &head, sizeof(head), 0);   // 先接受包头
+            if(ret != sizeof(head)){ // 要是只读了一段没读完咋办 这里默认是没有数据了
+                continue;
+            }
+            // 心跳包
+            if(head.type == heart){
+                count_heart[i] = 0;        // 每次收到心跳包，count置0
+                cout<<"收到来自参与者"<<i<<"的心跳包"<<endl;
+                // 发回去
+                send(fd_participant[i], &head, sizeof(head), 0);
+                cout<<"给参与者"<<i<<"回应心跳包"<<endl;
+            }
+            
+            // 数据包
+            else{
+                // 数据包，通过head.length确认数据包长度 
+            }   
+
+
+        }
+    }
+
+    friend void *response_heart(void *argv);
+
+    void run(){
+        while(1){
+            receive_participant();
+            //receive_client();
+        }
+    }
+
+    
 };
 
 
 
+
 int main(int argc, char **argv){
-    Conf conf=getConf(getOptConf(argc,argv));
+    Conf conf = getConf(getOptConf(argc, argv));
     coordinator coor(conf);
     coor.init_serveraddr();
     coor.connect_participant();
+    coor.run();
+    // 开个线程接收客户端连接
 }
