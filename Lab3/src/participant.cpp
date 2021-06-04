@@ -39,11 +39,12 @@ private:
     int connectSocket;
     sockaddr_in client;
     sockaddr_in server;
+
     pthread_mutex_t write_lock;
     pthread_mutex_t heart_lock;
     //pthread_cond_t connecting;
     // 记录协调者没有返回的心跳个数
-    int heart_count;
+    int  heart_count;
     bool recv_heart;
     //bool forbidden_recv;
 
@@ -114,8 +115,8 @@ public:
         pthread_mutex_unlock(&heart_lock);
         packet_head head;// 先接受包头
         //这里得设置一个超时 因为此时也可能断开连接 发生超时后跳转到开头 
-        //尝试太多次失败后会直接被操作系统kill?
-        int ret = recv(connectSocket, &head, sizeof(head), 0);//？？MSG_DONTWAIT
+        //这个recv flag参数得好好研究下
+        int ret = recv(connectSocket, &head, sizeof(head), MSG_DONTWAIT);// !!!!!!MSG_DONTWAIT
         if(ret != sizeof(head)){//?
             //cout<<"长度只有"<<ret<<endl;
             return;
@@ -148,7 +149,7 @@ public:
             return;
     }
 
-    // 声明为普通的友元函数? 供子线程去调用
+    // 声明为普通的友元函数 供子线程去调用 在类函数里面开线程不能直接调用类里面的函数
     friend void* send_heart(void* argv);
 
     void run(){
@@ -161,10 +162,10 @@ public:
     }
 };
 
-
+// 定期发送心跳包
 void* send_heart(void* argv){
     // 发心跳包的时候得加个锁 避免和普通数据同时写
-    participant *p = (participant*)argv;
+    participant *p = (participant *)argv;
     while(1){
         // 一秒钟发一个心跳包
         sleep(1);

@@ -211,7 +211,7 @@ std::string getOptConf(int argc, char **argv)
         {"config_path", required_argument, NULL, 'r'},
         {0, 0, 0, 0} // 添加 {0, 0, 0, 0} 是为了防止输入空值
     };
-    std::string name="1";
+    std::string name = "1";
     while ((opt = getopt_long(argc,
                               argv,
                               optstring,
@@ -221,7 +221,7 @@ std::string getOptConf(int argc, char **argv)
         if (strcmp(long_options[option_index].name, "config_path") == 0){
             printf("config_path optarg = %s\n", optarg); // 参数内容
             printf("\n");
-            name=optarg;
+            name = optarg;
         }
     }
     return name;

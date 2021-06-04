@@ -5,31 +5,31 @@
 //  返回：Conf 结构体
 Conf getConf(std::string filename){
     std::fstream fin;
-    fin.open(filename,std::ios::in);
+    fin.open(filename, std::ios::in);
     Conf conf;
     char line[255];
     char *token;
-    conf.partNum=0;
+    conf.partNum = 0;
     while(!fin.eof())
     {
         fin.getline(line,255);
-        if(line[0]=='!'){
+        if(line[0] == '!'){
             continue;
         }
         //printf("%s\n",line);
-        token=line+17;
-        if(strspn(line,"mode")==4)  //mode
+        token = line + 17;
+        if(strspn(line, "mode") == 4)  //mode
         {
-            conf.isCoor=(line[5]=='c');
+            conf.isCoor = (line[5] == 'c');
         }
-        else if(line[0]=='c')       //coordinator_info
+        else if(line[0] == 'c')       //coordinator_info
         {
             char* p;
             p = strsep(&token, ":");
             std::string ip(p);
-            conf.coorIp=ip;
+            conf.coorIp = ip;
             p = strsep(&token, ":");
-            conf.coorPort=atoi(p);
+            conf.coorPort = atoi(p);
             //std::cout<<conf.coorIp<<" "<<conf.coorPort<<"\n";
         }
         else                        //participant_info
@@ -39,12 +39,13 @@ Conf getConf(std::string filename){
             p = strsep(&token, ":");
             std::string ip(p);
             Part tmp;
-            tmp.ip=ip;
+            tmp.ip = ip;
             p = strsep(&token, ":");
-            tmp.port=atoi(p);
+            tmp.port = atoi(p);
             conf.part.push_back(tmp);
             //std::cout<<tmp.ip<<" "<<tmp.port<<"\n";
         }
+        
     }
     fin.close();
     return conf;
