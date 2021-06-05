@@ -209,7 +209,7 @@ public:
         }
     }
 
-    void receive_client{
+    void receive_client(){
         ;
     }
 
