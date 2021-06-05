@@ -5,7 +5,7 @@ Order getOrder(std::string orderStr)
     Order order;
     if (orderStr[0] != '*')
     {
-        order.type = 0;
+        order.op = NIL;
         return order;
     }
     std::vector<std::string> orderList;
@@ -25,7 +25,7 @@ Order getOrder(std::string orderStr)
     int num = orderList.size();
     if (orderList[2] == "SET")
     {
-        order.type = 1;
+        order.op = SET;
         order.key = orderList[4];
         for (int i = 6; i < num; i += 2)
         {
@@ -34,12 +34,12 @@ Order getOrder(std::string orderStr)
     }
     else if (orderList[2] == "GET")
     {
-        order.type = 2;
+        order.op = GET;
         order.key = orderList[4];
     }
     else
     {
-        order.type = 3;
+        order.op = DEL;
         for (int i = 4; i < num; i += 2)
         {
             order.value.emplace_back(orderList[i]);

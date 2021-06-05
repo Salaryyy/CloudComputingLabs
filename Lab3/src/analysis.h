@@ -4,8 +4,17 @@
 #include <stdlib.h>
 #include <vector>
 
-struct Order{
-    int type;
+enum Op
+{
+    NIL,
+    SET,
+    GET,
+    DEL
+};
+
+struct Order
+{
+    Op op;
     std::string key;
     std::vector<std::string> value;
 };
