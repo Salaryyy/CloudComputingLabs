@@ -11,14 +11,16 @@
 #include <ctype.h>
 #include <sys/socket.h>
 #include <signal.h>
+#include <sys/time.h>
 #include <pthread.h>
 #include <iostream>
+#include <unordered_map>
 #include "tools.h"
 #include "conf.h"
 using namespace std;
 
 // 包头结构
-enum Type {heart, data};
+enum Type {heart, data, done, commit, rollback};
 struct packet_head
 {
     Type type;
@@ -30,6 +32,8 @@ void* send_heart(void* argv);
 
 class participant{
 private:
+    unordered_map<string, vector<string>> kv;
+
     unsigned int myip;
     unsigned short myport;
     unsigned int ip_coordinator;
@@ -116,9 +120,9 @@ public:
         packet_head head;// 先接受包头
         //这里得设置一个超时 因为此时也可能断开连接 发生超时后跳转到开头 
         //这个recv flag参数得好好研究下
-        int ret = recv(connectSocket, &head, sizeof(head), MSG_DONTWAIT);// !!!!!!MSG_DONTWAIT
+        int ret = recv(connectSocket, &head, sizeof(head), MSG_DONTWAIT);// !!!!!!MSG_DONTWAIT不要改这里了
         if(ret != sizeof(head)){//?
-            //cout<<"长度只有"<<ret<<endl;
+            // cout<<"长度只有"<<ret<<endl;
             return;
         }
         // 接收到心跳回应包
@@ -131,12 +135,31 @@ public:
         }
 
         // 接收到数据包
-        else{
-            //调用处理数据包的函数解析并发送数据
+        else if(head.type == data){
+            string message;
+            readn(connectSocket, message);
+            Order order = getOrder(message);//单独测一下
+            if(order.op == NIL)
+                return; //如果要开线程的话 这里改成continue
+            else if(order.op == GET){
+                if(kv.find(order.key) != kv.end()){
+                    order.value = kv[order.key];
+                }
+                // 查一下发过去  这个函数有个bug
+                string respose = setOrder(order); 
+                packet_head head;
+                head.type = data;
+                head.length = 0;  //不需要了
+                // 加锁发送数据包头 和 数据包体
+                pthread_mutex_lock(&write_lock);
+                send(connectSocket, &head, sizeof(head), 0);
+                writen(connectSocket, respose);
+                pthread_mutex_unlock(&write_lock);
+            }
+
         }
     }
 
-    // !!!! 这个地方协调者那边也需要设置一下
     // 如果尝试send到一个disconnected socket上，就会让底层抛出一个SIGPIPE信号。
     // 这个信号的缺省处理方法是退出进程，大多数时候这都不是我们期望的。
     // 因此我们需要重载这个信号的处理方法。调用以下代码，即可安全的屏蔽SIGPIP
@@ -191,6 +214,7 @@ void* send_heart(void* argv){
                 p->heart_count = 0;
                 cout<<"超时， 关闭"<<p->connectSocket<<endl;
                 close(p->connectSocket);
+                // ????设置一个标志信息 让其他线程停止不做了
                 p->connect_coordinator(); // !!! 重新建连的时候不能读数据
             }
         }
