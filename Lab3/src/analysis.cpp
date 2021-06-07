@@ -1,5 +1,5 @@
 #include "analysis.h"
-
+#include <sstream>
 Order getOrder(std::string orderStr)
 {
     Order order;
@@ -59,11 +59,11 @@ std::string setOrder(Order order)
     int num = order.value.size();
     std::string substr="\r\n";
     ret="*";
-    ret=ret+char(num+'0')+substr;
+    ret=ret+std::to_string(num)+substr;
     for (auto a : order.value)
     {
         num=a.size();
-        ret=ret+char(num+'0')+substr+a+substr;
+        ret=ret+std::to_string(num)+substr+a+substr;
     }
     return ret;
 }
