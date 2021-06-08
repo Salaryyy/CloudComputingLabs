@@ -234,11 +234,12 @@ ssize_t writen(int fd, std::string &sbuff){
         nleft -= nwritten;
         ptr += nwritten;
     }
-    // 传完的清除掉
-    if(writeSum == static_cast<int>(sbuff.size()))
-        sbuff.clear();
-    else
-        sbuff = sbuff.substr(writeSum);
+    // 先不要清除
+    // // 传完的清除掉
+    // if(writeSum == static_cast<int>(sbuff.size()))
+    //     sbuff.clear();
+    // else
+    //     sbuff = sbuff.substr(writeSum);
     return writeSum;
 }
 

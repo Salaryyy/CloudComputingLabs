@@ -17,6 +17,7 @@
 #include <string>
 #include <getopt.h>
 #include <vector>
+#include <iostream>
 using namespace std;
 
 #define ERROR_SIZE 256

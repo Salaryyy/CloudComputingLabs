@@ -15,6 +15,7 @@
 #include <pthread.h>
 #include <iostream>
 #include <unordered_map>
+#include <sstream>
 #include "tools.h"
 #include "conf.h"
 using namespace std;
@@ -24,6 +25,7 @@ using namespace std;
 class participant{
 private:
     unordered_map<string, vector<string>> kv;
+    unordered_map<string, vector<string>> kv_record;
 
     unsigned int myip;
     unsigned short myport;
@@ -107,8 +109,10 @@ public:
                 connect_coordinator(); 
                 continue;
             }
+            cout<<"收到包头"<<head.length<<endl;
             if(head.type == data){
                 string message;
+                cout<<"开始接收"<<endl;
                 ret = readn(connectSocket, message, head.length);
                 cout<<"收到数据包: "<<message<<endl;
                 if(ret == 0){
@@ -126,16 +130,54 @@ public:
                         order.value = kv[order.key];
                     }
                     string respose = setOrder(order); 
-                    packet_head head;
                     head.type = data;
                     head.length = respose.size();  //不需要了
                     // 不用加锁了没有其他线程
                     //cout<<"回复长度"<<respose.size()<<endl;
                     //pthread_mutex_lock(&write_lock);
-                    ret = write_head(connectSocket, &head);
+                    write_head(connectSocket, &head);
                     writen(connectSocket, respose);
-                    // 判断ret。。。。。。
+                    // 判断ret。。。。。。交给下次read的时候判断吧
                     //pthread_mutex_unlock(&write_lock);
+                }
+                // 两阶段提交
+                else if(order.op == SET || order.op == DEL){
+                    //先完成 然后回复个done
+                    cout<<"修改指令"<<endl;
+                    kv_record = kv; //备个份
+                    string respose;
+                    if(order.op == SET){
+                        kv[order.key] = order.value;
+                        respose = "+OK\r\n";
+                    }
+                    else if(order.op == DEL){
+                        int ndel = 0;
+                        for(int i = 0; i < order.value.size(); ++i){
+                            if(kv.find(order.value[i]) != kv.end()){
+                                kv.erase(order.value[i]);
+                                ++ndel;
+                            }
+                        }
+                        respose = ":" + to_string(ndel) + "\r\n";
+                    }
+                    head.type = done;
+                    head.length = respose.size();
+
+                    write_head(connectSocket, &head);
+                    ret = writen(connectSocket, respose);
+                    // //如果对面断了 停止两阶段 回滚停止两阶段 其实也可以先不回滚 等待commit包超时再回滚
+                    // if(ret == 0)
+                    //     continue;
+                    cout<<"完成请求 回发done包"<<endl;
+                    //接收commit或rollback消息
+                    ret = read_head(connectSocket, &head);
+                    // 超时或者接收到rollback
+                    if(ret == 0 || head.type == rollback){
+                        kv = kv_record;
+                    }
+                    else if(head.type == commit){
+                        ;//什么也不做
+                    }
                 }
 
             }

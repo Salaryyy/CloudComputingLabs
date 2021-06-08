@@ -86,14 +86,17 @@ int main(){
 
     cout<<"连接成功"<<endl;
     
+    //string data = "*4\r\n$3\r\nSET\r\n$7\r\nCS06142\r\n$5\r\nCloud\r\n$9\r\nComputing999999\r\n";
     string data = "*2\r\n$3\r\nGET\r\n$7\r\nCS06142\r\n";
+    //string data = "*3\r\n$3\r\nDEL\r\n$7\r\nCS06142\r\n$5\r\nCS162\r\n";
     //cin>>data;
 
     writen(connectSocket, data);
     char jieshou[2014];
+    //jieshou[30] = '\0';
     //sleep(100);
-    read(connectSocket, jieshou, sizeof(jieshou));
+    int ret = read(connectSocket, jieshou, sizeof(jieshou));
+    jieshou[ret] = '\0';
     cout<<jieshou<<endl;
-
     
 }
