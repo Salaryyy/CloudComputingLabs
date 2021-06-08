@@ -348,6 +348,7 @@ void *hand_out(void *argv){
                 等会 怎么个等法 等多久 没有shutdown就一直等   检查recvdatai
                 接受回复转发
             */
+            cout<<"准备发送\n";
             head.type = data;
             head.length = ask.message.size();
             pthread_mutex_lock(&(p->write_lock[i]));

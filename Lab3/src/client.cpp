@@ -74,7 +74,7 @@ int main(){
     sockaddr_in server;
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = htonl(myip); 
-    server.sin_port = htons(10001);
+    server.sin_port = htons(8001);
 
     int opt = 1;                                                    
     setsockopt(connectSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); 

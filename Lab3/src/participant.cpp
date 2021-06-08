@@ -79,7 +79,7 @@ public:
         connectSocket = socket(AF_INET, SOCK_STREAM, 0);
         cout<<"新建socket "<<connectSocket<<endl;
         // 设置端口重用
-        int opt = 1;                                                    
+        int opt = 1;
         setsockopt(connectSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)); 
         // 如果不bind 系统自动分配端口号
         if(bind(connectSocket, (struct sockaddr *) &client, sizeof(client)) == SO_ERROR){
@@ -114,7 +114,7 @@ public:
                 if(ret == 0){
                     cout<<"协调者 断开连接"<<endl;
                     close(connectSocket);
-                    connect_coordinator(); 
+                    connect_coordinator();
                     continue;
                 }
                 Order order = getOrder(message);
