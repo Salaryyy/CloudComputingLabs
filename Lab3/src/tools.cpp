@@ -1,44 +1,10 @@
-#include <stdio.h>
-#include <errno.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <string.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <ctype.h>
-#include <sys/socket.h>
-#include <stdbool.h>
-#include <sstream>
 #include "tools.h"
-using namespace std;
 
-
-
-
-
-// ip转换成int 进行非法判断
+// ip转换成int 不进行非法判断
 unsigned int ip_int(char *ip)
 {   
-    // //编译正则
-    // regex_t ipreg1;
-	// int reg = regcomp(&ipreg1, ip_format, REG_EXTENDED);
-	// if(reg != 0) {
-	// 	regerror(reg, &ipreg1, errbuf, ERROR_SIZE);	
-	// 	printf("%s\n", errbuf);
-	// 	memset(errbuf, 0, ERROR_SIZE);
-	// 	return 0;
-	// }
-    // if(!get_IP_legal(&ipreg1 ,ip)){
-    //     printf("Illegal IP!! Please Check!\n");
-    //     return __INT32_MAX__;
-    // }
     unsigned int re = 0;
     unsigned char tmp = 0;
-    //printf("%s\n", ip);
-    //printf("%d\n", strlen(ip));
     while (1) {
         if (*ip != '\0' && *ip != '.') {
             tmp = tmp * 10 + *ip - '0';
@@ -53,43 +19,7 @@ unsigned int ip_int(char *ip)
     return re;
 }
 
-
-
-// 读取http请求的一行
-int get_line(int sock, char *buf, int size)
-{
-    int i = 0;
-    char c = '\0';
-    int n;
-    while ((i < size ) && (c != '\n')) {   
-        //n = recv(sock, &c, 1, MSG_DONTWAIT); // 非阻塞  即没有数据不会死等 然后就会跳到else 跳出循环 如果没有数据就返回0
-        //设置定时器
-        struct timeval timeout = {0, 1};//3s
-        // int ret=setsockopt(sock,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));
-        int ret=setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-        n = recv(sock, &c, 1, 0);
-	    if (n > 0) {        
-            if (c == '\r') {        
-                n = recv(sock, &c, 1, MSG_PEEK); //不从管道中拿出来
-                if ((n > 0) && (c == '\n')) {              
-                    recv(sock, &c, 1, 0);
-                } else {                       
-                    c = '\n';
-                }
-            }
-            buf[i] = c;
-            i++;
-        } else {    
-           // if(errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
-            //    continue; 
-            c = '\n';
-        }
-    }
-    buf[i] = '\0';
-    return i;
-}
-
-std::string getOptConf(int argc, char **argv)
+string getOptConf(int argc, char **argv)
 {
     int opt;              // getopt_long() 的返回值
     int digit_optind = 0; // 设置短参数类型及是否需要参数
@@ -134,62 +64,6 @@ std::string getOptConf(int argc, char **argv)
     return name;
 }
 
-
-ssize_t readn(int fd, std::string &inBuffer){
-    ssize_t nread = 0;
-    ssize_t readSum = 0;
-    while(true){
-        char buff[MAX_BUFF];
-        if((nread = read(fd, buff, MAX_BUFF)) < 0){
-            if(errno == EINTR)
-                continue;
-            else if(errno == EAGAIN){
-                return readSum;
-            }  
-            else{
-                perror("read error");
-                return -1;
-            }
-        }
-        else if(nread == 0){
-            break;
-        }
-        readSum += nread;
-        inBuffer += std::string(buff, buff + nread);
-    }
-    return readSum;
-}
-
-ssize_t writen(int fd, std::string &sbuff){
-    size_t nleft = sbuff.size();
-    ssize_t nwritten = 0;
-    ssize_t writeSum = 0;
-    const char *ptr = sbuff.c_str();
-    while(nleft > 0){
-        if((nwritten = write(fd, ptr, nleft)) <= 0){
-            if(nwritten < 0){
-                if(errno == EINTR){
-                    nwritten = 0;
-                    continue;
-                }
-                else if(errno == EAGAIN)
-                    break;
-                else
-                    return -1;
-            }
-        }
-        writeSum += nwritten;
-        nleft -= nwritten;
-        ptr += nwritten;
-    }
-    // 传完的清除掉
-    if(writeSum == static_cast<int>(sbuff.size()))
-        sbuff.clear();
-    else
-        sbuff = sbuff.substr(writeSum);
-    return writeSum;
-}
-
 int get_type(string &ask){
     int n = ask.size();
     if(n == 0) 
@@ -216,8 +90,7 @@ int get_type(string &ask){
     return 0;
 }
 
-Order getOrder(std::string orderStr)
-{
+Order getOrder(std::string orderStr){
     Order order;
     if(orderStr[0] != '*'){
         order.op = NIL;
@@ -256,8 +129,7 @@ Order getOrder(std::string orderStr)
     return order;
 }
 
-std::string setOrder(Order order)
-{
+std::string setOrder(Order order){
     std::string ret;
     int num = order.value.size();
     if (num == 0)
@@ -270,10 +142,144 @@ std::string setOrder(Order order)
     ret = ret + std::to_string(num) + substr;
     for (auto a : order.value)
     {
-        num=a.size();
-        ret = ret + std::to_string(num) + substr + a + substr;
+        num = a.size();
+        ret = ret + "$" +std::to_string(num) + substr + a + substr;
     }
     return ret;
 }
 
 
+// 从客户端读
+ssize_t readn(int fd, std::string &inBuffer){
+    ssize_t nread = 0;
+    ssize_t readSum = 0;
+    // 设置个定时 客户端那边收到回复之前不会关闭连接
+    struct timeval timeout = {0, 1};
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    while(true){
+        char buff[MAX_BUFF];
+        if((nread = read(fd, buff, MAX_BUFF)) < 0){
+            // 正常中断处理
+            if(errno == EINTR)
+                continue;
+            // 如果设置了超时的话 超过设置的时间了 
+            else if(errno == EAGAIN){
+                return readSum;
+            }  
+            else{
+                perror("read error");
+                return -1;
+            }
+        }
+        // 对端关闭了socket  或者写缓冲满了
+        else if(nread == 0){
+            break;
+        }
+        readSum += nread;
+        inBuffer += std::string(buff, buff + nread);
+    }
+    return readSum;
+}
+
+// kv系统内部使用 有个问题 可能会读超过len个
+ssize_t readn(int fd, string &inBuffer, int len){
+    ssize_t nread = 0;
+    ssize_t readSum = 0;
+    inBuffer.clear(); //先清空
+    while(readSum < len){
+        char buff[MAX_BUFF];
+        if((nread = read(fd, buff, MAX_BUFF)) < 0){
+            // 正常中断处理
+            if(errno == EINTR)
+                continue;
+            // 如果设置了超时的话 超过设置的时间了 
+            else if(errno == EAGAIN){
+                return readSum;
+            }  
+            else{
+                perror("read error");
+                return -1;
+            }
+        }
+        // 读：对端关闭了socket  写：写缓冲满了
+        else if(nread == 0){
+            break;
+        }
+        readSum += nread;
+        inBuffer += string(buff, buff + nread);
+    }
+    return readSum;
+}
+
+
+ssize_t writen(int fd, std::string &sbuff){
+    size_t nleft = sbuff.size();
+    ssize_t nwritten = 0;
+    ssize_t writeSum = 0;
+    const char *ptr = sbuff.c_str();
+    while(nleft > 0){
+        if((nwritten = write(fd, ptr, nleft)) <= 0){
+            if(nwritten < 0){
+                if(errno == EINTR){
+                    nwritten = 0;
+                    continue;
+                }
+                else if(errno == EAGAIN)
+                    break;
+                else
+                    return -1;
+            }
+        }
+        writeSum += nwritten;
+        nleft -= nwritten;
+        ptr += nwritten;
+    }
+    // 传完的清除掉
+    if(writeSum == static_cast<int>(sbuff.size()))
+        sbuff.clear();
+    else
+        sbuff = sbuff.substr(writeSum);
+    return writeSum;
+}
+
+ssize_t read_head(int fd, packet_head *head){
+    ssize_t ret;
+    while(1){
+        ret = read(fd, head, 8);
+        if(ret < 0){
+            if(errno == EINTR)
+                continue;
+            else{
+                perror("read error");
+                return -1;
+            }
+        }
+        if(ret == 0)
+            return 0;
+        else{
+            return ret;
+        }
+    }
+    return 0;
+}
+
+ssize_t write_head(int fd, packet_head *head){
+    ssize_t ret;
+    while(1){
+        ret = write(fd, head, 8);
+        if(ret < 0){
+            if(errno == EINTR)
+                continue;
+            else{
+                perror("read error");
+                return -1;
+            }
+        }
+        if(ret == 0)
+            return 0;
+        else{
+            return ret;
+        }
+    }
+    return 0;
+}
