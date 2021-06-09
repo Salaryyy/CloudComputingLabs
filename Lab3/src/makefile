@@ -1,3 +1,5 @@
+kvstore2pcsystem: conf.o participant coordinator 
+	g++ conf.o kvstore2pcsystem.cpp -o kvstore2pcsystem
 coordinator: coordinator.o tools.o conf.o participant client
 	g++ coordinator.o tools.o conf.o -o coordinator -lpthread
 participant: participant.o tools.o conf.o
@@ -15,4 +17,4 @@ conf.o: conf.cpp
 tools.o: tools.cpp
 	g++ -c tools.cpp -o tools.o
 clean: 
-	rm *.o participant coordinator
+	rm *.o participant coordinator kvstore2pcsystem client

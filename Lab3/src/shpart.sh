@@ -14,4 +14,4 @@ then
 else
     conf="./participant_sample3.conf"
 fi
-./participant --config_path $conf
+./kvstore2pcsystem --config_path $conf

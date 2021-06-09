@@ -478,88 +478,88 @@ void *receive_client(void *argv){
     }
 }
 
-void *hand_out(void *argv){
-    coordinator *p = (coordinator *)argv;
-    packet_head head;
-    while(1){
-        // 从任务队列里面获取一个任务
-        pthread_mutex_lock(&(p->worklist_lock));
+// void *hand_out(void *argv){
+//     coordinator *p = (coordinator *)argv;
+//     packet_head head;
+//     while(1){
+//         // 从任务队列里面获取一个任务
+//         pthread_mutex_lock(&(p->worklist_lock));
 
-        while(p->worklist.empty()){ //if也行 没有相同的线程在竞争
-            pthread_cond_wait(&(p->worklist_cond), &(p->worklist_lock));
-        }
-        client_ask ask = p->worklist.front();
-        p->worklist.pop_front();
+//         while(p->worklist.empty()){ //if也行 没有相同的线程在竞争
+//             pthread_cond_wait(&(p->worklist_cond), &(p->worklist_lock));
+//         }
+//         client_ask ask = p->worklist.front();
+//         p->worklist.pop_front();
 
-        pthread_mutex_unlock(&(p->worklist_lock));
+//         pthread_mutex_unlock(&(p->worklist_lock));
 
-        // 判断一下是什么请求
-        /*
-            if(ask[i] == 'G')
-                return 1;
-            if(ask[i] == 'S')
-                return 2;
-            if(ask[i] == 'D')
-                return 3;
-        */
-        /*
-            get
-            找一个能在运行的参与者直接发过去 然后把响应直接给客户端    
-            如果没有响应 则换下个人人发    (定时) 要不要换呢 麻烦...
-        */
-        cout<<"开始分发任务："<<ask.message<<endl;
-        if(get_type(ask.message) == 1){
-            int i = 0;
-            // 干脆访问shutdown不加锁了 竞争比较小 
-            again:
-            while(i < p->n_participant && p->shut_down[i])
-                ++i;
-            if(i == p->n_participant){
-                string message = "-ERROR\r\n";
-                writen(ask.fd, message);
-                cout<<"全部down机了，返回error"<<endl;
-                continue;
-                //return error message continue
-            }
-            // 每个协调者都需要一个写锁  
-            /*
-                锁住
-                发送请求
-                开锁
-                等会 怎么个等法 等多久 没有shutdown就一直等   检查recvdatai
-                接受回复转发
-            */
-            cout<<"准备发送\n";
-            head.type = data;
-            head.length = ask.message.size();
-            pthread_mutex_lock(&(p->write_lock[i]));
-            write_head(p->fd_participant[i], &head);                        //先发个包头
-            writen(p->fd_participant[i], ask.message);  //数据
-            pthread_mutex_unlock(&(p->write_lock[i]));
-            cout<<"将请求发送给"<<i<<"号参与者"<<endl;
-            // 临界区统统不加锁了... 只要沒有关机就一直等
-            while(!p->shut_down[i]){
-                if(p->recv_data[i]){
-                    p->recv_data[i] = false; //重置缓冲区状态
-                    break;
-                }
-            }
+//         // 判断一下是什么请求
+//         /*
+//             if(ask[i] == 'G')
+//                 return 1;
+//             if(ask[i] == 'S')
+//                 return 2;
+//             if(ask[i] == 'D')
+//                 return 3;
+//         */
+//         /*
+//             get
+//             找一个能在运行的参与者直接发过去 然后把响应直接给客户端    
+//             如果没有响应 则换下个人人发    (定时) 要不要换呢 麻烦...
+//         */
+//         cout<<"开始分发任务："<<ask.message<<endl;
+//         if(get_type(ask.message) == 1){
+//             int i = 0;
+//             // 干脆访问shutdown不加锁了 竞争比较小 
+//             again:
+//             while(i < p->n_participant && p->shut_down[i])
+//                 ++i;
+//             if(i == p->n_participant){
+//                 string message = "-ERROR\r\n";
+//                 writen(ask.fd, message);
+//                 cout<<"全部down机了，返回error"<<endl;
+//                 continue;
+//                 //return error message continue
+//             }
+//             // 每个协调者都需要一个写锁  
+//             /*
+//                 锁住
+//                 发送请求
+//                 开锁
+//                 等会 怎么个等法 等多久 没有shutdown就一直等   检查recvdatai
+//                 接受回复转发
+//             */
+//             cout<<"准备发送\n";
+//             head.type = data;
+//             head.length = ask.message.size();
+//             pthread_mutex_lock(&(p->write_lock[i]));
+//             write_head(p->fd_participant[i], &head);                        //先发个包头
+//             writen(p->fd_participant[i], ask.message);  //数据
+//             pthread_mutex_unlock(&(p->write_lock[i]));
+//             cout<<"将请求发送给"<<i<<"号参与者"<<endl;
+//             // 临界区统统不加锁了... 只要沒有关机就一直等
+//             while(!p->shut_down[i]){
+//                 if(p->recv_data[i]){
+//                     p->recv_data[i] = false; //重置缓冲区状态
+//                     break;
+//                 }
+//             }
             
-            if(p->shut_down[i])
-                goto again;
-            //pthread_mutex_lock(&(p->data_lock));  //这个锁不用  每次都是读完了再叫这个线程过来取得 读完后recvdata才会更新
-            cout<<"收到回复:  "<<p->data_return[i]<<endl;
-            ask.message = p->data_return[i];
-            p->data_return[i].clear();
-            //p->recv_data[i] = false; //重置缓冲区状态
-            //pthread_mutex_unlock(&(p->data_lock)); 
-            writen(ask.fd, ask.message); //这里要不要定时
-            cout<<"回复完毕"<<endl;
-            close(ask.fd);
-        }
-    }
-    return NULL;
-}
+//             if(p->shut_down[i])
+//                 goto again;
+//             //pthread_mutex_lock(&(p->data_lock));  //这个锁不用  每次都是读完了再叫这个线程过来取得 读完后recvdata才会更新
+//             cout<<"收到回复:  "<<p->data_return[i]<<endl;
+//             ask.message = p->data_return[i];
+//             p->data_return[i].clear();
+//             //p->recv_data[i] = false; //重置缓冲区状态
+//             //pthread_mutex_unlock(&(p->data_lock)); 
+//             writen(ask.fd, ask.message); //这里要不要定时
+//             cout<<"回复完毕"<<endl;
+//             close(ask.fd);
+//         }
+//     }
+//     return NULL;
+// }
 
 
 // 如果尝试send到一个disconnected socket上，就会让底层抛出一个SIGPIPE信号。

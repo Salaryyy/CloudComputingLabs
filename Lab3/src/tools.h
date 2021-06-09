@@ -26,9 +26,6 @@ using namespace std;
 // ip转换成int 不进行非法判断
 unsigned int ip_int(char *ip);
 
-// 从输入参数获取配置文件信息 没有判断文件是否存在
-string getOptConf(int argc, char **argv);
-
 // 获取请求类型
 int get_type(std::string &ask);
 
