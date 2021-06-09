@@ -84,7 +84,7 @@ public:
         port_participant.resize(n_participant);
         fd_participant.resize(n_participant);
         for(int i = 0; i < n_participant; ++i){
-            strcpy(ip,conf.coorIp.c_str());
+            strcpy(ip,conf.part[i].ip.c_str());
             ip_participant[i]=ip_int(ip);
             port_participant[i]=conf.part[i].port;
             fd_participant[i] = -1;
@@ -174,6 +174,8 @@ public:
                 else{
                     if(i == n_participant - 1){
                         cout<<"这不是参与者，关闭连接"<<endl;
+                        string errorstrxxx="-ERROR\r\n";
+                        writen(connfd,errorstrxxx);
                         close(connfd);
                     }
                 }

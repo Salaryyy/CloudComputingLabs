@@ -52,7 +52,7 @@ public:
         strcpy(ip,conf.part[0].ip.c_str());
         myip = ip_int(ip);
         myport = conf.part[0].port; 
-        strcpy(ip,conf.part[0].ip.c_str());
+        strcpy(ip,conf.coorIp.c_str());
         ip_coordinator = ip_int(ip);
         port_coordinator = conf.coorPort;
         //cout<<myip<<" "<<myport<<" "<<ip_coordinator<<" "<<port_coordinator<<endl;

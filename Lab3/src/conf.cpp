@@ -13,7 +13,7 @@ Conf getConf(std::string filename){
     while(!fin.eof())
     {
         fin.getline(line,255);
-        if(line[0] == '!'){
+        if(strlen(line)==0||line[0] == '!'){
             continue;
         }
         //printf("%s\n",line);
@@ -95,8 +95,8 @@ std::string getOptConf(int argc, char **argv)
                               &option_index)) != -1)
     {
         if (strcmp(long_options[option_index].name, "config_path") == 0){
-            printf("config_path optarg = %s\n", optarg); // 参数内容
-            printf("\n");
+            //printf("config_path optarg = %s\n", optarg); // 参数内容
+            //printf("\n");
             name = optarg;
         }
     }
