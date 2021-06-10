@@ -13,7 +13,7 @@ Conf getConf(std::string filename){
     while(!fin.eof())
     {
         fin.getline(line,255);
-        if(strlen(line)==0||line[0] == '!'){
+        if(strlen(line) == 0 || line[0] == '!'){
             continue;
         }
         //printf("%s\n",line);

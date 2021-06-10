@@ -185,7 +185,7 @@ public:
     }
 
     void run(){
-        kv.insert({"CS06142", {"Cloud", "Computing"}});
+        //kv.insert({"CS06142", {"Cloud", "Computing"}});
         receive_coordinator();
     }
 

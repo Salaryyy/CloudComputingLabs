@@ -85,8 +85,8 @@ public:
         fd_participant.resize(n_participant);
         for(int i = 0; i < n_participant; ++i){
             strcpy(ip,conf.part[i].ip.c_str());
-            ip_participant[i]=ip_int(ip);
-            port_participant[i]=conf.part[i].port;
+            ip_participant[i] = ip_int(ip);
+            port_participant[i] = conf.part[i].port;
             fd_participant[i] = -1;
         }
         
