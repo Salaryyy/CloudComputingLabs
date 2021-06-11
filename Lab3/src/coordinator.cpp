@@ -31,6 +31,12 @@ using namespace std;
 //     int length;
 // };
 
+pthread_cond_t MR_cond;
+pthread_cond_t RC_cond;
+
+
+int RCconnfd=0;
+
 // 处理完后记得关闭连接fd
 struct client_ask{
     int fd; 
@@ -41,6 +47,10 @@ struct client_ask{
 void *receive_client(void *argv);
 void *hand_out(void *argv);
 void *receive_participant(void *argv);
+void *manage_recover(void *argv);
+void *listen_forever(void *argv);
+
+
 
 class coordinator{
 private:
@@ -71,6 +81,8 @@ private:
     pthread_mutex_t worklist_lock;
     pthread_cond_t worklist_cond;
 
+    vector<pthread_cond_t > participant_con; //参与者连接存在
+    
 public:
     coordinator(Conf conf){
         // 在这里读配置文件将ip和port设置好
@@ -83,11 +95,15 @@ public:
         ip_participant.resize(n_participant);
         port_participant.resize(n_participant);
         fd_participant.resize(n_participant);
+
+        participant_con.resize(n_participant);
+
         for(int i = 0; i < n_participant; ++i){
             strcpy(ip,conf.part[i].ip.c_str());
-            ip_participant[i] = ip_int(ip);
-            port_participant[i] = conf.part[i].port;
+            ip_participant[i]=ip_int(ip);
+            port_participant[i]=conf.part[i].port;
             fd_participant[i] = -1;
+            pthread_cond_init(&participant_con[i],NULL);//初始化条件便利
         }
         
 
@@ -138,7 +154,7 @@ public:
         }
     }
 
-    void connect_participant(){
+    void *connect_participant(){
         int cur_participant = 0;
         struct sockaddr_in cliaddr;
         socklen_t cliaddr_len = sizeof(cliaddr);
@@ -156,6 +172,7 @@ public:
             cout<<"新连接 ip"<<client_ip<<" port"<<client_port<<endl;
 
             // 检查是否是参与者
+            
             for(int i = 0; i < n_participant; ++i){
                 if(ip_int(client_ip) == ip_participant[i] && client_port == port_participant[i]){
                     cout<<"这是参与者"<<i<<endl;
@@ -180,13 +197,17 @@ public:
                     }
                 }
             }
-            
             if(cur_participant == n_participant){
                 cout<<"所有参与者都连接成功"<<endl;
                 break;
             }
         }
     }
+    friend void *manage_recover(void *argv);
+
+
+    friend void *listen_forever(void *argv);
+
 
     // 接收参与者的消息 每一个参与者配一个
     friend void *receive_participant(void *argv);
@@ -198,19 +219,113 @@ public:
     friend void *hand_out(void *argv);
 
     void run(){
-        pthread_t tid[n_participant + 2];
+        //pthread_t tid[n_participant + 2];
+       // pthread_t con_pthread;
+        //pthread_create(&con_pthread,NULL,connect_participant,NULL)
+        pthread_t tid[n_participant];
+        pthread_t LF;
+        pthread_create(&LF,NULL,listen_forever,(void *)this);
+        
         for(int i = 0; i < n_participant; ++i){
             pthread_create(&tid[i], NULL, receive_participant, (void *)this);
         }
-        pthread_create(&tid[n_participant], NULL, receive_client, (void *)this);
-        pthread_create(&tid[n_participant + 1], NULL, hand_out, (void *)this);
-
+         pthread_create(&tid[n_participant], NULL, receive_client, (void *)this);
+         pthread_create(&tid[n_participant + 1], NULL, hand_out, (void *)this);
+       
+        
         for(int i = 0; i < n_participant + 2; ++i){
             pthread_join(tid[i], NULL);
         }
+            pthread_join(LF, NULL);
+
     }
 
 };
+
+
+
+
+void *listen_forever(void *argv){//持续监听后续连接，通过条件变量决定是客户端还是
+
+    coordinator *p = (coordinator *)argv;
+    struct sockaddr_in cliaddr;
+    socklen_t cliaddr_len = sizeof(cliaddr);
+    //cout<<"我是LF线程"<<endl;
+    while(1){
+        //阻塞监听链接请求 这个连接可能来自参与者 可能来自客户端 需要判断一下
+        int connfd = accept(p->listenfd, (struct sockaddr *)&cliaddr, &cliaddr_len);   
+        //看一下客户端信息
+        char client_ip[40];
+        int  client_port = ntohs(cliaddr.sin_port);
+        inet_ntop(AF_INET, &cliaddr.sin_addr, client_ip, sizeof(client_ip));
+
+
+        cout<<"监听到新连接 ip"<<client_ip<<"  port "<<client_port<<endl;
+        cout<<"新连接cfd: "<<connfd<<endl;
+
+        // 检查是否是参与者
+        bool flag = false;
+        for(int i = 0; i < p->n_participant; ++i){
+            if(ip_int(client_ip) == p->ip_participant[i] && client_port == p->port_participant[i]){
+                cout<<"参与者"<<i<<"重新连接----------正在同步数据"<<endl;
+                close(p->fd_participant[i]);
+                p->fd_participant[i] = connfd;
+                p->shut_down[i] = false;
+                flag = true;
+                pthread_cond_broadcast(&p->participant_con[i]);//第i个重联  唤醒他
+                break;
+            }
+        }
+        if(!flag){//客户端连接
+            cout<<"这是客户端的连接"<<endl;
+            RCconnfd=connfd;
+            pthread_cond_broadcast(&RC_cond);
+            
+            continue;
+        }
+        pthread_cond_broadcast(&MR_cond);
+    }        
+}
+
+
+
+pthread_mutex_t MR_mutex;//管理恢复的锁
+
+
+void *manage_recover(void *argv){
+    pthread_mutex_init(&MR_mutex, NULL);
+    coordinator *p = (coordinator *)argv;
+    int pno, ret;
+    packet_head head;
+    char buf[10];
+    string message;
+
+
+
+    while(1){
+       pthread_mutex_lock(&MR_mutex);
+
+      
+        pthread_cond_wait(&MR_cond, &MR_mutex);
+        
+
+
+    
+
+
+        pthread_mutex_unlock(&MR_mutex);  
+
+
+
+
+}
+
+}
+
+
+
+
+
 
 void *hand_out(void *argv){
     coordinator *p = (coordinator *)argv;
@@ -382,9 +497,10 @@ void *hand_out(void *argv){
 }
 
 
-
+pthread_mutex_t RP_mutex;//管理恢复的锁
 
 void *receive_participant(void *argv){
+     pthread_mutex_init(&RP_mutex, NULL);
     coordinator *p = (coordinator *)argv;
     int pno, ret;
     packet_head head;
@@ -397,14 +513,23 @@ void *receive_participant(void *argv){
     cout<<"掌管参与者 "<<pno<<endl;
     while(1){
         // 读取包头 这里可以封装一下
+        //pthread_mutex_lock(&RP_mutex);
+
         ret = read_head(p->fd_participant[pno], &head);
-        if(ret == 0){
+          if(ret == 0){
             cout<<"参与者 "<<pno<<" 断开连接"<<endl;
             p->shut_down[pno] = true;
             // 只完成版本2的话 这个线程可以一直睡着了
-            return NULL;
+
+            //阻塞，等待重联
+            pthread_cond_wait(&p->participant_con[pno],&RP_mutex);
+
+            continue;
             // 要完成版本3的话 这个线程要accept该参与者上线
         }
+       // pthread_mutex_unlock(&RP_mutex);  
+
+    
 
         if(head.type == data){
             cout<<"读到一个data包"<<endl;
@@ -431,52 +556,38 @@ void *receive_participant(void *argv){
     }
 }
 
+pthread_mutex_t RC_mutex;//恢复客户端的锁
+
 void *receive_client(void *argv){
+      pthread_mutex_init(&RC_mutex, NULL);
+
     coordinator *p = (coordinator *)argv;
     struct sockaddr_in cliaddr;
     socklen_t cliaddr_len = sizeof(cliaddr);
     while(1){
-        // 如果系统正在恢复 或者当前参与者全部失效了 阻塞在这里
-        // ...
-
-        //阻塞监听链接请求 这个连接可能来自参与者 可能来自客户端 需要判断一下
+       
         cout<<"等待客户端连接中"<<endl;
-        int connfd = accept(p->listenfd, (struct sockaddr *)&cliaddr, &cliaddr_len);   
-
-        //看一下客户端信息
-        char client_ip[40];
-        int  client_port = ntohs(cliaddr.sin_port);
-        inet_ntop(AF_INET, &cliaddr.sin_addr, client_ip, sizeof(client_ip));
-        cout<<"新客户端连接 ip"<<client_ip<<"  port "<<client_port<<endl;
-        cout<<"新连接cfd: "<<connfd<<endl;
-
-        // 检查是否是参与者
-        bool flag = false;
-        for(int i = 0; i < p->n_participant; ++i){
-            if(ip_int(client_ip) == p->ip_participant[i] && client_port == p->port_participant[i]){
-                cout<<"这不是普通客户端"<<endl;
-                close(connfd);
-                flag = true;
-                break;
-            }
-        }
-        if(flag){
-            continue;
-        }
-
-        // 只在这边解析方法 具体工作在hand_out里面做
-        string data;
+      
+        pthread_cond_wait(&RC_cond, &RC_mutex);
+         string data;
         // 可以用自己的read函数
-        int ret = readn(connfd, data);
+        int ret = readn(RCconnfd, data);
         if(ret > 0){
             cout<<"接收到来自客户端的请求： "<<data<<endl;
             pthread_mutex_lock(&(p->worklist_lock));
 
-            p->worklist.push_back({connfd, data});
+            p->worklist.push_back({RCconnfd, data});
             pthread_cond_signal(&(p->worklist_cond)); // 唤醒正在等待的hand_out线程
             
             pthread_mutex_unlock(&(p->worklist_lock));
         }
+
+
+     
+
+
+        // 只在这边解析方法 具体工作在hand_out里面做
+       
     }
 }
 
@@ -582,6 +693,7 @@ int main(int argc, char **argv){
     Conf conf = getConf(getOptConf(argc, argv));
     coordinator coor(conf);
     coor.init_serveraddr();
+    
     coor.connect_participant();
     coor.run();
 }

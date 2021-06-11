@@ -30,7 +30,7 @@ unsigned int ip_int(char *ip);
 int get_type(std::string &ask);
 
 // 请求类型
-enum Op{NIL, SET, GET, DEL};
+enum Op{NIL, SET, GET, DEL, SYN};
 struct Order{
     Op op;
     string key;

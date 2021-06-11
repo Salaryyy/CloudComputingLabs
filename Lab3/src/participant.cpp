@@ -91,7 +91,7 @@ public:
         }
         while(connect(connectSocket, (struct sockaddr*)&server, sizeof(server)) != 0){
             cout<<"连接协调者失败， 继续尝试"<<endl;
-            sleep(1);
+            sleep(10);
         }
         cout<<"连接成功 "<<endl;
     }
@@ -179,13 +179,34 @@ public:
                         ;//什么也不做
                     }
                 }
+                else if(order.op == SYN){//同步 恢复某个数据库
+
+                /*
+                     if(kv.find(order.key) != kv.end()){
+                        order.value = kv[order.key];
+                    }
+                    string respose = setOrder(order); 
+                    head.type = data;
+                    head.length = respose.size();  //不需要了
+                    // 不用加锁了没有其他线程
+                    //cout<<"回复长度"<<respose.size()<<endl;
+                    //pthread_mutex_lock(&write_lock);
+                    write_head(connectSocket, &head);
+                    writen(connectSocket, respose);
+                    // 判断ret。。。。。。交给下次read的时候判断吧
+                    //pthread_mutex_unlock(&write_lock);
+
+                */
+
+               
+                }
 
             }
         }
     }
 
     void run(){
-        //kv.insert({"CS06142", {"Cloud", "Computing"}});
+        kv.insert({"CS06142", {"Cloud", "Computing"}});
         receive_coordinator();
     }
 
