@@ -10,40 +10,33 @@ Conf getConf(std::string filename){
     char line[255];
     char *token;
     conf.partNum = 0;
-    while(!fin.eof())
-    {
+    while(!fin.eof()){
         fin.getline(line,255);
         if(strlen(line) == 0 || line[0] == '!'){
             continue;
         }
-        //printf("%s\n",line);
         token = line + 17;
-        if(strspn(line, "mode") == 4)  //mode
-        {
+        if(strspn(line, "mode") == 4){  //mode
             conf.isCoor = (line[5] == 'c');
         }
-        else if(line[0] == 'c')       //coordinator_info
-        {
+        else if(line[0] == 'c'){        //coordinator_info
             char* p;
             p = strsep(&token, ":");
-            std::string ip(p);
+            string ip(p);
             conf.coorIp = ip;
             p = strsep(&token, ":");
             conf.coorPort = atoi(p);
-            //std::cout<<conf.coorIp<<" "<<conf.coorPort<<"\n";
         }
-        else                        //participant_info
-        {
+        else{                           //participant_info
             conf.partNum++;
             char* p;
             p = strsep(&token, ":");
-            std::string ip(p);
+            string ip(p);
             Part tmp;
             tmp.ip = ip;
             p = strsep(&token, ":");
             tmp.port = atoi(p);
             conf.part.push_back(tmp);
-            //std::cout<<tmp.ip<<" "<<tmp.port<<"\n";
         }
         
     }
@@ -54,12 +47,11 @@ Conf getConf(std::string filename){
 //  判断文件是否存在
 //  True    存在
 //  False   不存在
-bool isExistConf(const std::string& name) {
+bool isExistConf(const string& name){
     return ( access( name.c_str(), F_OK ) != -1 );
 }
 
-std::string getOptConf(int argc, char **argv)
-{
+std::string getOptConf(int argc, char **argv){
     int opt;              // getopt_long() 的返回值
     int digit_optind = 0; // 设置短参数类型及是否需要参数
 
@@ -88,12 +80,7 @@ std::string getOptConf(int argc, char **argv)
         {0, 0, 0, 0} // 添加 {0, 0, 0, 0} 是为了防止输入空值
     };
     std::string name = "1";
-    while ((opt = getopt_long(argc,
-                              argv,
-                              optstring,
-                              long_options,
-                              &option_index)) != -1)
-    {
+    while((opt = getopt_long(argc, argv, optstring, long_options, &option_index)) != -1){
         if (strcmp(long_options[option_index].name, "config_path") == 0){
             //printf("config_path optarg = %s\n", optarg); // 参数内容
             //printf("\n");

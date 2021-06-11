@@ -1,8 +1,7 @@
 #include "tools.h"
 
 // ip转换成int 不进行非法判断
-unsigned int ip_int(char *ip)
-{   
+unsigned int ip_int(char *ip){   
     unsigned int re = 0;
     unsigned char tmp = 0;
     while (1) {
@@ -45,7 +44,7 @@ int get_type(string &ask){
     return 0;
 }
 
-Order getOrder(std::string orderStr){
+Order getOrder(string orderStr){
     Order order;
     if(orderStr[0] != '*'){
         order.op = NIL;
@@ -84,21 +83,37 @@ Order getOrder(std::string orderStr){
     return order;
 }
 
-std::string setOrder(Order order){
+string setOrder(Order order){
+    string ret;
+    int num = order.value.size();
+    if(num == 0){
+        ret = "*1\r\n$3\r\nnil\r\n";
+        return ret;
+    }
+    string substr = "\r\n";
+    ret = "*";
+    ret = ret + std::to_string(num) + substr;
+    for(auto a : order.value){
+        num = a.size();
+        ret = ret + "$" +std::to_string(num) + substr + a + substr;
+    }
+    return ret;
+}
+
+string setOrder_recover(Order order){
     std::string ret;
     int num = order.value.size();
-    if (num == 0)
-    {
+    if(num == 0){
         ret = "*1\r\n$3\r\nnil\r\n";
         return ret;
     }
     std::string substr = "\r\n";
     ret = "*";
-    ret = ret + std::to_string(num) + substr;
-    for (auto a : order.value)
-    {
+    ret = ret + std::to_string(num + 2) + substr + "$3" + substr + "SET" + substr;
+    ret += "$" + std::to_string(order.key.size()) + substr +  order.key + substr;
+    for(auto a : order.value){
         num = a.size();
-        ret = ret + "$" +std::to_string(num) + substr + a + substr;
+        ret += "$" +std::to_string(num) + substr + a + substr;
     }
     return ret;
 }
@@ -136,14 +151,14 @@ ssize_t readn(int fd, std::string &inBuffer){
     return readSum;
 }
 
-// kv系统内部使用 有个问题 可能会读超过len个
+// kv系统内部使用
 ssize_t readn(int fd, string &inBuffer, int len){
     ssize_t nread = 0;
     ssize_t readSum = 0;
     inBuffer.clear(); //先清空
     while(readSum < len){
         char buff[MAX_BUFF];
-        if((nread = read(fd, buff, MAX_BUFF)) < 0){
+        if((nread = read(fd, buff, 1)) < 0){ // 每次只读一个 防止多读
             // 正常中断处理
             if(errno == EINTR)
                 continue;
@@ -162,6 +177,7 @@ ssize_t readn(int fd, string &inBuffer, int len){
         }
         readSum += nread;
         inBuffer += string(buff, buff + nread);
+        //cout<<"read"<<readSum<<endl;
     }
     return readSum;
 }

@@ -1,0 +1,978 @@
+---------------------------------- Global test start ----------------------------------
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 1 ----------------------------------
+Test item 1. Test point: Run kvstore2pcsystem.
+Language checking......
+Language: [ C/C++ ]
+Start make, waiting for a while......
+make: Entering directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+g++ -c participant.cpp -o participant.o
+g++ participant.o tools.o conf.o -o participant -lpthread
+g++ coordinator.o tools.o conf.o -o coordinator -lpthread
+g++ conf.o kvstore2pcsystem.cpp -o kvstore2pcsystem
+make: Leaving directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+Make successfully
+Start system: [ C/C++ ]
+等待参与者连接中
+Run coordinator successfully
+Run participant[0] successfully
+Run participant[1] successfully
+Run participant[2] successfully
+Run kvstore2pcsystem successfully
+============================ [PASSED] : Test item 1 ============================
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 2 ----------------------------------
+Test item 2. Test point: Set key to hold string value.
+连接成功 
+连接成功 
+新连接 ip192.168.66.202 port8003
+这是参与者1
+等待参与者连接中
+新连接 ip192.168.66.203 port8004
+这是参与者2
+等待参与者连接中
+新连接 ip192.168.66.101 port59042
+这不是参与者, 保存请求
+等待参与者连接中
+
+item set set_result: 
+============================ [FAILED] : Test item 2 ============================
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 3 ----------------------------------
+Test item 3. Test point: Get the value of key.
+新连接 ip192.168.66.101 port59044
+这不是参与者, 保存请求
+等待参与者连接中
+
+Kill coordinator and then restart.
+协调者 断开连接
+协调者 断开连接
+Language checking......
+Language: [ C/C++ ]
+Start make, waiting for a while......
+make: Entering directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+make: 'kvstore2pcsystem' is up to date.
+make: Leaving directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+Make successfully
+Start system: [ C/C++ ]
+等待参与者连接中
+连接成功 
+新连接 ip192.168.66.202 port8003
+这是参与者1
+等待参与者连接中
+连接成功 
+新连接 ip192.168.66.203 port8004
+这是参与者2
+等待参与者连接中
+Run coordinator successfully
+新连接 ip192.168.66.101 port59046
+这不是参与者, 保存请求
+等待参与者连接中
+get_result: 
+============================ [FAILED] : Test item 3 ============================
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 4 ----------------------------------
+Test item 4. Test point: Return nil if the key does no exist.
+新连接 ip192.168.66.101 port59048
+这不是参与者, 保存请求
+等待参与者连接中
+============================ [FAILED] : Test item 4 ============================
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 5 ----------------------------------
+Test item 5. Test point: If the DEL command executed, return the number of keys that were removed.
+新连接 ip192.168.66.101 port59050
+这不是参与者, 保存请求
+等待参与者连接中
+连接成功 
+新连接 ip192.168.66.201 port8002
+这是参与者0
+所有参与者都连接成功
+maxversion: 0
+掌管参与者 0
+掌管参与者 1
+掌管参与者 2
+等待客户端连接中
+开始分发任务：*2
+$3
+GET
+$9
+item3_key
+
+将请求发送给0号参与者
+读到一个data包
+数据长度13
+收到回复:  *1
+$3
+nil
+
+回复完毕
+开始分发任务：*2
+$3
+GET
+$9
+item4_key
+
+将请求发送给0号参与者
+读到一个data包
+数据长度13
+收到回复:  *1
+$3
+nil
+
+回复完毕
+开始分发任务：*3
+$3
+SET
+$11
+item5_key_1
+$13
+item5_value_1
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+2读到一个done包5
+1读到一个done包5
+0读到一个done包5
+
+数据长度5
+数据长度5
+数据长度5
+全部确认，commit
+新客户端连接 ip192.168.66.101  port 59052
+新连接cfd: 10
+接收到来自客户端的请求： *3
+$3
+SET
+$11
+item5_key_2
+$13
+item5_value_2
+
+等待客户端连接中
+开始分发任务：*3
+$3
+SET
+$11
+item5_key_2
+$13
+item5_value_2
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+2读到一个done包5
+1读到一个done包5
+0读到一个done包5
+数据长度5
+数据长度5
+数据长度5
+全部确认，commit
++OK
+Kill coordinator and then restart.
+协调者 断开连接
+协调者 断开连接
+协调者 断开连接
+Language checking......
+Language: [ C/C++ ]
+Start make, waiting for a while......
+make: Entering directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+make: 'kvstore2pcsystem' is up to date.
+make: Leaving directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+Make successfully
+Start system: [ C/C++ ]
+等待参与者连接中
+连接成功 
+连接成功 
+连接成功 
+新连接 ip192.168.66.201 port8002
+这是参与者0
+等待参与者连接中
+新连接 ip192.168.66.203 port8004
+这是参与者2
+等待参与者连接中
+新连接 ip192.168.66.202 port8003
+这是参与者1
+所有参与者都连接成功
+maxversion: 2
+掌管参与者 0
+掌管参与者 1
+掌管参与者 2
+等待客户端连接中
+Run coordinator successfully
+新客户端连接 ip192.168.66.101  port 59054
+新连接cfd: 7
+接收到来自客户端的请求： *3
+$3
+DEL
+$11
+item5_key_1
+$11
+item5_key_2
+
+等待客户端连接中
+开始分发任务：*3
+$3
+DEL
+$11
+item5_key_1
+$11
+item5_key_2
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+0读到一个done包42
+读到一个done包4
+1读到一个done包4
+数据长度4
+数据长度4
+数据长度4
+全部确认，commit
+============================ [PASSED] : Test item 5 ============================
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 6 ----------------------------------
+Test item 6. Test point: When associating a new value to an existing key,  it should overwrite the value of the existing entry,
+新客户端连接 ip192.168.66.101  port 59056
+新连接cfd: 8
+接收到来自客户端的请求： *3
+$3
+SET
+$9
+item6_key
+$11
+item6_value
+
+等待客户端连接中
+开始分发任务：*3
+$3
+SET
+$9
+item6_key
+$11
+item6_value
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+1读到一个done包5
+0读到一个done包5
+2读到一个done包5
+数据长度5
+数据长度5
+数据长度5
+全部确认，commit
++OK
+新客户端连接 ip192.168.66.101  port 59058
+新连接cfd: 7
+接收到来自客户端的请求： *3
+$3
+SET
+$9
+item6_key
+$15
+item6_value_new
+
+等待客户端连接中
+开始分发任务：*3
+$3
+SET
+$9
+item6_key
+$15
+item6_value_new
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+1读到一个done包5
+2读到一个done包5
+0读到一个done包5
+数据长度5
+数据长度5
+数据长度5
+全部确认，commit
++OK
+Kill coordinator and then restart.
+协调者 断开连接
+协调者 断开连接
+协调者 断开连接
+Language checking......
+Language: [ C/C++ ]
+Start make, waiting for a while......
+make: Entering directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+make: 'kvstore2pcsystem' is up to date.
+make: Leaving directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+Make successfully
+Start system: [ C/C++ ]
+等待参与者连接中
+连接成功 
+连接成功 
+连接成功 
+新连接 ip192.168.66.202 port8003
+这是参与者1
+等待参与者连接中
+新连接 ip192.168.66.201 port8002
+这是参与者0
+等待参与者连接中
+新连接 ip192.168.66.203 port8004
+这是参与者2
+所有参与者都连接成功
+maxversion: 5
+掌管参与者 0
+掌管参与者 1
+掌管参与者 2等待客户端连接中
+
+Run coordinator successfully
+新客户端连接 ip192.168.66.101  port 59060
+新连接cfd: 7
+接收到来自客户端的请求： *2
+$3
+GET
+$9
+item6_key
+
+等待客户端连接中
+开始分发任务：*2
+$3
+GET
+$9
+item6_key
+
+将请求发送给0号参与者
+读到一个data包
+数据长度26
+收到回复:  *1
+$15
+item6_value_new
+
+回复完毕
+============================ [PASSED] : Test item 6 ============================
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 7 ----------------------------------
+Test item 7. Test point: Correctness testing of DEL command.
+新客户端连接 ip192.168.66.101  port 59062
+新连接cfd: 8
+接收到来自客户端的请求： *3
+$3
+SET
+$9
+item7_key
+$11
+item7_value
+
+等待客户端连接中
+开始分发任务：*3
+$3
+SET
+$9
+item7_key
+$11
+item7_value
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+21读到一个done包5读到一个done包5
+
+0读到一个done包5
+数据长度5
+数据长度5
+数据长度5
+全部确认，commit
++OK
+新客户端连接 ip192.168.66.101  port 59064
+新连接cfd: 7
+接收到来自客户端的请求： *2
+$3
+DEL
+$9
+item7_key
+
+等待客户端连接中
+开始分发任务：*2
+$3
+DEL
+$9
+item7_key
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+2读到一个done包4
+0读到一个done包4
+1读到一个done包4
+数据长度4
+数据长度4
+数据长度4
+全部确认，commit
+新客户端连接 ip192.168.66.101  port 59066
+新连接cfd: 8
+接收到来自客户端的请求： *2
+$3
+GET
+$9
+item7_key
+
+等待客户端连接中
+开始分发任务：*2
+$3
+GET
+$9
+item7_key
+
+将请求发送给0号参与者
+读到一个data包
+数据长度13
+收到回复:  *1
+$3
+nil
+
+回复完毕
+============================ [PASSED] : Test item 7 ============================
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 8 ----------------------------------
+Test item 8. Test point: Kill one of the participants.
+新客户端连接 ip192.168.66.101  port 59068
+新连接cfd: 7
+接收到来自客户端的请求： *3
+$3
+SET
+$9
+item8_key
+$17
+item8_key_value_1
+
+等待客户端连接中
+开始分发任务：*3
+$3
+SET
+$9
+item8_key
+$17
+item8_key_value_1
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+0读到一个done包5
+1读到一个done包5
+2读到一个done包5
+数据长度5
+数据长度5
+数据长度5
+全部确认，commit
++OK
+新客户端连接 ip192.168.66.101  port 59070
+新连接cfd: 8
+接收到来自客户端的请求： *3
+$3
+SET
+$9
+item8_key
+$17
+item8_key_value_2
+
+等待客户端连接中
+开始分发任务：*3
+$3
+SET
+$9
+item8_key
+$17
+item8_key_value_2
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+0读到一个done包5
+1读到一个done包5
+2读到一个done包5
+数据长度5
+数据长度5
+数据长度5
+全部确认，commit
++OK
+参与者 0 断开连接
+等待参与者重连中
+新客户端连接 ip192.168.66.101  port 59072
+新连接cfd: 7
+接收到来自客户端的请求： *3
+$3
+SET
+$9
+item8_key
+$17
+item8_key_value_3
+
+等待客户端连接中
+开始分发任务：*3
+$3
+SET
+$9
+item8_key
+$17
+item8_key_value_3
+
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 2 个参与者发送请求
+2读到一个done包5
+1读到一个done包5
+数据长度数据长度55
+
+全部确认，commit
++OK
+开始分发任务：*2
+$3
+GET
+$9
+item8_key
+
+将请求发送给1号参与者
+读到一个data包
+数据长度28
+收到回复:  *1
+$17
+item8_key_value_3
+
+回复完毕
+============================ [PASSED] : Test item 8 ============================
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 9 ----------------------------------
+Test item 9. Test point: Kill all of the participants.
+新客户端连接 ip192.168.66.101  port 59076
+新连接cfd: 8
+接收到来自客户端的请求： *3
+$3
+SET
+$9
+item9_key
+$17
+item9_key_value_1
+
+等待客户端连接中
+开始分发任务：*3
+$3
+SET
+$9
+item9_key
+$17
+item9_key_value_1
+
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 2 个参与者发送请求
+2读到一个done包5
+1读到一个done包5
+数据长度5
+数据长度5
+全部确认，commit
++OK
+开始分发任务：*3
+$3
+SET
+$9
+item9_key
+$17
+item9_key_value_2
+
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 2 个参与者发送请求
+2读到一个done包5
+1读到一个done包5
+数据长度5
+数据长度5
+全部确认，commit
++OK
+参与者 2 断开连接
+参与者 1 断开连接
+等待参与者重连中
+等待参与者重连中
+新客户端连接 ip192.168.66.101  port 59080
+新连接cfd: 5
+接收到来自客户端的请求： *2
+$3
+GET
+$9
+item9_key
+
+等待客户端连接中
+开始分发任务：*2
+$3
+GET
+$9
+item9_key
+
+全部down机了，返回error
+开始分发任务：*2
+$3
+GET
+$9
+item9_key
+
+全部down机了，返回error
+开始分发任务：*2
+$3
+GET
+$9
+item9_key
+
+全部down机了，返回error
+开始分发任务：*2
+$3
+GET
+$9
+item9_key
+
+全部down机了，返回error
+新客户端连接 ip192.168.66.101  port 59088
+新连接cfd: 7
+接收到来自客户端的请求： *2
+$3
+GET
+$9
+item9_key
+
+等待客户端连接中
+开始分发任务：*2
+$3
+GET
+$9
+item9_key
+
+全部down机了，返回error
+开始分发任务：*2
+$3
+GET
+$9
+item9_key
+
+全部down机了，返回error
+开始分发任务：*2
+$3
+GET
+$9
+item9_key
+
+全部down机了，返回error
+开始分发任务：*2
+$3
+GET
+$9
+item9_key
+
+全部down机了，返回error
+新客户端连接 ip192.168.66.101  port 59096
+新连接cfd: 6
+接收到来自客户端的请求： *2
+$3
+GET
+$9
+item9_key
+
+等待客户端连接中
+开始分发任务：*2
+$3
+GET
+$9
+item9_key
+
+全部down机了，返回error
+开始分发任务：*2
+$3
+GET
+$9
+item9_key
+
+全部down机了，返回error
+============================ [PASSED] : Test item 9 ============================
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 10 ----------------------------------
+Test item 10. Test point: extreme version test.
+Language checking......
+Language: [ C/C++ ]
+Start make, waiting for a while......
+make: Entering directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+make: 'kvstore2pcsystem' is up to date.
+make: Leaving directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+Make successfully
+Start system: [ C/C++ ]
+等待参与者连接中
+Run coordinator successfully
+Run participant[0] successfully
+Run participant[1] successfully
+Run participant[2] successfully
+Run kvstore2pcsystem successfully
+连接成功 
+连接成功 
+连接成功 
+新连接 ip192.168.66.201 port8002
+这是参与者0
+等待参与者连接中
+新连接 ip192.168.66.202 port8003
+这是参与者1
+等待参与者连接中
+新连接 ip192.168.66.203 port8004
+这是参与者2
+所有参与者都连接成功
+maxversion: 0
+掌管参与者 0
+掌管参与者 1
+掌管参与者 2
+等待客户端连接中
+新客户端连接 ip192.168.66.101  port 59100
+新连接cfd: 7
+接收到来自客户端的请求： *3
+$3
+SET
+$12
+item10_key_1
+$20
+item10_key_1_value_1
+
+等待客户端连接中
+开始分发任务：*3
+$3
+SET
+$12
+item10_key_1
+$20
+item10_key_1_value_1
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+0读到一个done包5
+1读到一个done包5
+2读到一个done包5
+数据长度5
+数据长度5
+数据长度5
+全部确认，commit
++OK
+新客户端连接 ip192.168.66.101  port 59102
+新连接cfd: 8
+接收到来自客户端的请求： *3
+$3
+SET
+$12
+item10_key_2
+$20
+item10_key_2_value_2
+
+等待客户端连接中
+开始分发任务：*3
+$3
+SET
+$12
+item10_key_2
+$20
+item10_key_2_value_2
+
+正在发送给0请求
+成功发送给 0 请求
+正在发送给1请求
+成功发送给 1 请求
+正在发送给2请求
+成功发送给 2 请求
+总共给 3 个参与者发送请求
+2读到一个done包5
+1读到一个done包5
+0读到一个done包5
+数据长度5
+数据长度5
+数据长度5
+全部确认，commit
++OK
+Kill coordinator and then restart.
+协调者 断开连接
+协调者 断开连接
+Language checking......
+Language: [ C/C++ ]
+Start make, waiting for a while......
+make: Entering directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+make: 'kvstore2pcsystem' is up to date.
+make: Leaving directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+Make successfully
+Start system: [ C/C++ ]
+等待参与者连接中
+连接成功 
+连接成功 
+新连接 ip192.168.66.202 port8003
+这是参与者1
+等待参与者连接中
+新连接 ip192.168.66.203 port8004
+这是参与者2
+等待参与者连接中
+Run coordinator successfully
+Language checking......
+Language: [ C/C++ ]
+Start make, waiting for a while......
+make: Entering directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+make: 'kvstore2pcsystem' is up to date.
+make: Leaving directory '/home/grc/lab/CloudComputingLabs-master/Lab3/code4/src'
+Make successfully
+Start system: [ C/C++ ]
+Run participant[0] successfully
+Run kvstore2pcsystem successfully
+连接成功 
+新连接 ip192.168.66.201 port8002
+这是参与者0
+所有参与者都连接成功
+maxversion: 2
+掌管参与者 0
+掌管参与者 1
+掌管参与者 2
+等待客户端连接中
+接收方恢复开始
+对方ip和port分别是3232252617 8002
+主动方恢复开始
+连接待恢复参与者成功
+对方断开连接，应该是消息传完了
+数据恢复完成
+参与者 1 断开连接
+等待参与者重连中
+参与者 2 断开连接
+等待参与者重连中
+新客户端连接 ip192.168.66.101  port 59106
+新连接cfd: 7
+接收到来自客户端的请求： *2
+$3
+GET
+$12
+item10_key_2
+
+等待客户端连接中
+开始分发任务：*2
+$3
+GET
+$12
+item10_key_2
+
+将请求发送给0号参与者
+读到一个data包
+数据长度31
+收到回复:  *1
+$20
+item10_key_2_value_2
+
+回复完毕
+============================ [PASSED] : Test item 10 ============================
+                                       | |                                   
+                                       | |                                   
+                                       \|/                                   
+---------------------------------- Test item 11 ----------------------------------
+Test item 11. Test point: ultimate version test.
+开始分发任务：*3
+$3
+SET
+$12
+item11_key_1
+$20
+item11_key_1_value_1
+
+正在发送给0请求
+成功发送给 0 请求
+总共给 1 个参与者发送请求
+0读到一个done包5
+数据长度5
+全部确认，commit
++OK
+开始分发任务：*3
+$3
+SET
+$12
+item11_key_2
+$20
+item11_key_2_value_2
+
+正在发送给0请求
+成功发送给 0 请求
+总共给 1 个参与者发送请求
+0读到一个done包5
+数据长度5
+全部确认，commit
++OK
+协调者 断开连接
+============================ [FAILED] : Test item 11 ============================
+---------------------------------- Global test done ----------------------------------
+Language: []
+Test item 1: PASSED
+Test item 2: FAILED
+Test item 3: FAILED
+Test item 4: FAILED
+Test item 5: PASSED
+Test item 6: PASSED
+Test item 7: PASSED
+Test item 8: PASSED
+Test item 9: PASSED
+Test item 10: PASSED
+Test item 11: FAILED
