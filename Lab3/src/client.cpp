@@ -86,8 +86,8 @@ int main(){
 
     cout<<"连接成功"<<endl;
     
-    //string data = "*4\r\n$3\r\nSET\r\n$7\r\nCS8888\r\n$5\r\nCloud\r\n$9\r\nComputing999999\r\n";
-    string data = "*2\r\n$3\r\nGET\r\n$7\r\nCS8888\r\n";
+    string data = "*3\r\n$3\r\nSET\r\n$4\r\nkey1\r\n$6\r\nvalue1\r\n";
+    // string data = "*2\r\n$3\r\nGET\r\n$7\r\nCS8888\r\n";
     //string data = "*3\r\n$3\r\nDEL\r\n$7\r\nCS06142\r\n$5\r\nCS162\r\n";
     //cin>>data;
 
